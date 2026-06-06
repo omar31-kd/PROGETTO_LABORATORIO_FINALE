@@ -1,0 +1,50 @@
+R001
+Mario Rossi
+Laptop HP EliteBook 840
+Lo schermo presenta righe verticali e si spegne dopo 10 minuti di utilizzo
+2
+2
+150.00
+0.00
+1716638856
+---
+R002
+Laura Bianchi
+Smartphone Samsung Galaxy S21
+La batteria si scarica completamente in meno di due ore anche con uso minimo
+1
+1
+80.00
+0.00
+1716552456
+---
+R003
+Giuseppe Verdi
+PC Desktop Lenovo ThinkCentre
+Il computer non si accende, nessun segnale sul monitor, alimentatore sembra guasto
+3
+0
+200.00
+0.00
+1716725256
+---
+R004
+Anna Neri
+Stampante Epson EcoTank ET-2850
+Inceppamento carta continuo, il meccanismo di trascinamento non funziona correttamente
+0
+4
+50.00
+45.00
+1715688456
+---
+R005
+Carlo Ricci
+Tablet Apple iPad Pro 11
+Il touchscreen non risponde nella zona in alto a sinistra dopo una caduta
+2
+1
+120.00
+0.00
+1716811656
+---
