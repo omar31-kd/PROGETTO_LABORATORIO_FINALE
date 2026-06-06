@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Assistenza Tecnica — Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root{
   --bg:#f5f5f7;--panel:#fff;--panel-2:#fbfbfd;--sidebar:#fff;
@@ -24,10 +25,12 @@
 html,body{height:100%}
 body{font-family:var(--font);background:var(--bg);color:var(--ink);
   -webkit-font-smoothing:antialiased;font-size:15px;letter-spacing:-.01em}
-button,input{font-family:inherit} a{text-decoration:none;color:inherit}
+button,input,select{font-family:inherit} a{text-decoration:none;color:inherit}
 .ic{width:20px;height:20px;stroke:currentColor;fill:none;
   stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
 .ic-16{width:16px;height:16px}.ic-18{width:18px;height:18px}
+
+/* ── Topbar ── */
 .topbar{position:sticky;top:0;z-index:30;height:var(--head-h);
   display:flex;align-items:center;gap:18px;padding:0 22px;
   background:rgba(255,255,255,.72);
@@ -42,23 +45,9 @@ button,input{font-family:inherit} a{text-decoration:none;color:inherit}
 .brand .name{font-size:15px;font-weight:600;letter-spacing:-.02em;white-space:nowrap}
 .brand .name span{color:var(--ink-3);font-weight:500}
 .head-right{margin-left:auto;display:flex;align-items:center;gap:12px}
-.search{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;
-  background:#f0f0f2;border-radius:9px;color:var(--ink-3);min-width:200px;
-  border:1px solid transparent;transition:all .15s}
-.search:focus-within{background:#fff;border-color:var(--hair)}
-.search input{border:0;background:transparent;outline:0;font-size:13.5px;
-  color:var(--ink);width:100%}
-.search input::placeholder{color:var(--ink-3)}
 .datechip{font-size:13px;color:var(--ink-2);white-space:nowrap}
-.iconbtn{width:34px;height:34px;border-radius:9px;border:1px solid transparent;
-  background:transparent;color:var(--ink-2);display:grid;place-items:center;
-  cursor:pointer;position:relative}
-.iconbtn:hover{background:#f0f0f2}
-.iconbtn .ping{position:absolute;top:7px;right:8px;width:7px;height:7px;
-  border-radius:50%;background:var(--red);border:1.5px solid #fff}
-.avatar-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--hair);
-  background:linear-gradient(160deg,#e8edf5,#d7e0ee);color:var(--accent);
-  display:grid;place-items:center;font-size:12px;font-weight:700;cursor:pointer}
+
+/* ── Layout ── */
 .app-body{display:grid;grid-template-columns:var(--side-w) 1fr;align-items:start}
 .sidebar{position:sticky;top:var(--head-h);align-self:start;
   height:calc(100vh - var(--head-h));
@@ -67,7 +56,8 @@ button,input{font-family:inherit} a{text-decoration:none;color:inherit}
 .nav-sec{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
   color:var(--ink-3);margin:16px 10px 6px}.nav-sec:first-child{margin-top:2px}
 .nav-item{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:8px;
-  color:var(--ink);font-size:14px;font-weight:450;cursor:pointer;transition:background .12s}
+  color:var(--ink);font-size:14px;font-weight:450;cursor:pointer;transition:background .12s;
+  user-select:none}
 .nav-item .ic{width:18px;height:18px;color:var(--ink-2)}
 .nav-item:hover{background:#f3f3f5}
 .nav-item.active{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
@@ -82,17 +72,49 @@ button,input{font-family:inherit} a{text-decoration:none;color:inherit}
   display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
 .side-foot .who b{font-size:13.5px;font-weight:600;display:block}
 .side-foot .who small{font-size:12px;color:var(--ink-3)}
+
+/* ── Main & Views ── */
 .main{padding:24px 26px 60px;display:flex;flex-direction:column;gap:var(--gap);min-width:0}
+.view{display:none;flex-direction:column;gap:var(--gap)}
+.view.active{display:flex;animation:viewIn .18s ease}
+@keyframes viewIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Page head ── */
 .page-head{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
 .page-head h1{font-size:26px;font-weight:600;letter-spacing:-.03em}
 .page-head .sub{color:var(--ink-2);font-size:14px;margin-bottom:3px}
 .page-head .spacer{flex:1}
+
+/* ── Buttons ── */
 .btn{display:inline-flex;align-items:center;gap:7px;cursor:pointer;
   font-size:13.5px;font-weight:600;padding:8px 14px;border-radius:var(--r-ctrl);
   border:1px solid var(--hair);background:#fff;color:var(--ink);
   box-shadow:var(--sh-1);transition:all .12s}
 .btn:hover{background:#fafafa}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent-press)}
+
+/* ── Contextual search ── */
+.section-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ctx-search{display:flex;align-items:center;gap:8px;height:36px;padding:0 13px;
+  background:#fff;border-radius:var(--r-ctrl);color:var(--ink-3);
+  border:1px solid var(--hair);box-shadow:var(--sh-1);min-width:220px;
+  transition:all .15s}
+.ctx-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.ctx-search input{border:0;background:transparent;outline:0;font-size:13.5px;
+  color:var(--ink);width:100%}
+.ctx-search input::placeholder{color:var(--ink-3)}
+
+/* ── Filter pills ── */
+.filter-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.fpill{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;
+  border-radius:var(--r-pill);border:1px solid var(--hair);background:#fff;
+  color:var(--ink-2);font-size:13px;font-weight:500;cursor:pointer;
+  transition:all .12s;user-select:none}
+.fpill:hover{background:#f3f3f5}
+.fpill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── Cards ── */
 .card{background:var(--panel);border:1px solid var(--hair-2);
   border-radius:var(--r-card);box-shadow:var(--sh-2);padding:var(--pad)}
 .card-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
@@ -100,6 +122,8 @@ button,input{font-family:inherit} a{text-decoration:none;color:inherit}
 .card-head .meta{color:var(--ink-3);font-size:13px;font-weight:450}
 .card-head .spacer{flex:1}
 .card-head .link{color:var(--blue);font-size:13px;font-weight:500}
+
+/* ── KPIs ── */
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap)}
 .kpi{background:var(--panel);border:1px solid var(--hair-2);
   border-radius:var(--r-card);box-shadow:var(--sh-2);
@@ -117,7 +141,11 @@ button,input{font-family:inherit} a{text-decoration:none;color:inherit}
 .kpi .foot .warnt{color:var(--orange-ink);font-weight:600}
 .kpi .foot .ok{color:var(--green-ink);font-weight:600}
 .kpi .foot .acc{color:var(--accent-ink);font-weight:600}
+
+/* ── Mid grid ── */
 .mid{display:grid;grid-template-columns:1.5fr 1fr;gap:var(--gap);align-items:start}
+
+/* ── Urgency list ── */
 .urg-list{display:flex;flex-direction:column;gap:10px}
 .urg{display:flex;align-items:center;gap:14px;padding:14px 16px;
   border:1px solid var(--hair-2);border-radius:var(--r-sm);
@@ -131,6 +159,8 @@ button,input{font-family:inherit} a{text-decoration:none;color:inherit}
 .tag.dot::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
 .urg .desc{flex:1;min-width:0;font-size:14.5px;font-weight:500}
 .urg .desc small{display:block;color:var(--ink-3);font-size:12.5px;font-weight:400;margin-top:2px}
+
+/* ── Status pills ── */
 .s-pill{display:inline-flex;align-items:center;gap:5px;
   font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:var(--r-pill)}
 .s-pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
@@ -144,6 +174,8 @@ button,input{font-family:inherit} a{text-decoration:none;color:inherit}
 .p-alta{background:var(--orange-bg);color:var(--orange-ink)}
 .p-media{background:#f0f5ff;color:#0050d0}
 .p-bassa{background:var(--green-bg);color:var(--green-ink)}
+
+/* ── Donut ── */
 .donut-wrap{display:flex;align-items:center;gap:20px}
 .donut{width:128px;height:128px;flex:none;position:relative}
 .donut svg{transform:rotate(-90deg)}
@@ -155,16 +187,19 @@ button,input{font-family:inherit} a{text-decoration:none;color:inherit}
 .legend .sw{width:11px;height:11px;border-radius:4px;flex:none}
 .legend .row b{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums}
 .legend .row .cnt{color:var(--ink-3);font-size:12.5px;font-variant-numeric:tabular-nums}
+
+/* ── Bars ── */
 .divider{height:1px;background:var(--hair-2);margin:18px 0}
 .bars{display:flex;flex-direction:column;gap:13px}
 .bar{display:grid;grid-template-columns:90px 1fr 38px;align-items:center;gap:12px}
 .bar .lbl{font-size:13px;color:var(--ink-2)}
 .bar .track{height:8px;border-radius:var(--r-pill);background:#ececef;overflow:hidden}
 .bar .track>span{display:block;height:100%;border-radius:var(--r-pill);transition:width .6s}
-.bar .pct{font-size:13px;font-weight:600;text-align:right;color:var(--ink);
-  font-variant-numeric:tabular-nums}
+.bar .pct{font-size:13px;font-weight:600;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
 .fill-green{background:var(--green)}.fill-accent{background:var(--accent)}
 .fill-orange{background:var(--orange)}.fill-red{background:var(--red)}
+
+/* ── Tables ── */
 .tbl-card{padding:0;overflow:hidden}
 .tbl-card .card-head{padding:20px 22px 14px;margin:0}
 .tbl{width:100%;border-collapse:collapse}
@@ -183,26 +218,141 @@ button,input{font-family:inherit} a{text-decoration:none;color:inherit}
 .av-sm{width:30px;height:30px;border-radius:50%;flex:none;
   display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
 .prog{display:flex;align-items:center;gap:9px}
-.prog .track{width:80px;height:6px;border-radius:var(--r-pill);
-  background:#ececef;overflow:hidden}
+.prog .track{width:80px;height:6px;border-radius:var(--r-pill);background:#ececef;overflow:hidden}
 .prog .track>span{display:block;height:100%;border-radius:var(--r-pill)}
 .prog .v{font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;min-width:30px}
 .tbl .cost{font-variant-numeric:tabular-nums;font-weight:600}
 .tbl .cost.ok{color:var(--green-ink)}.tbl .cost.dash{color:var(--ink-3)}
 .tbl .dt{color:var(--ink-3);font-variant-numeric:tabular-nums;font-size:13px}
+.tbl-clickable tbody tr{cursor:pointer}
+
+/* ── Avatars ── */
 .c-navy{background:linear-gradient(160deg,#2c4f7c,#1f3a5f)}
 .c-teal{background:linear-gradient(160deg,#2aa6a0,#1c7d78)}
 .c-violet{background:linear-gradient(160deg,#7b6cf0,#5a48d6)}
 .c-amber{background:linear-gradient(160deg,#e8943a,#c9761f)}
 .c-rose{background:linear-gradient(160deg,#e7728a,#c94f6b)}
 .c-slate{background:linear-gradient(160deg,#6b7689,#4b5566)}
+
+/* ── Activity timeline (detail row in Richieste) ── */
+.detail-row td{padding:0!important;background:var(--accent-soft)!important}
+.detail-row{display:none}
+.detail-row.open{display:table-row}
+.detail-inner{padding:18px 22px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.tl{display:flex;flex-direction:column;gap:0}
+.tl-title{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:12px}
+.tl-item{display:flex;gap:12px;padding-bottom:14px;position:relative}
+.tl-item:last-child{padding-bottom:0}
+.tl-item::before{content:"";position:absolute;left:6px;top:18px;bottom:0;
+  width:1px;background:var(--hair)}
+.tl-item:last-child::before{display:none}
+.tl-dot{width:13px;height:13px;border-radius:50%;border:2px solid #fff;
+  box-shadow:0 0 0 2px var(--hair);flex:none;margin-top:3px}
+.tl-body{font-size:13.5px;line-height:1.4}
+.tl-body .tl-time{font-size:11.5px;color:var(--ink-3);display:block;margin-top:2px;
+  font-variant-numeric:tabular-nums}
+.detail-meta{display:flex;flex-direction:column;gap:10px}
+.detail-meta .row{display:flex;gap:8px;font-size:13.5px}
+.detail-meta .row .lbl{color:var(--ink-3);min-width:100px;font-size:12.5px}
+.detail-meta .row .val{font-weight:500}
+
+/* ── Technician profile cards ── */
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--gap)}
+.profile-card{background:var(--panel);border:1px solid var(--hair-2);
+  border-radius:var(--r-card);box-shadow:var(--sh-2);padding:22px;
+  display:flex;flex-direction:column;gap:16px;transition:box-shadow .15s}
+.profile-card:hover{box-shadow:0 1px 3px rgba(0,0,0,.06),0 18px 36px -16px rgba(0,0,0,.18)}
+.pc-header{display:flex;align-items:center;gap:14px}
+.av-lg{width:48px;height:48px;border-radius:50%;flex:none;
+  display:grid;place-items:center;font-size:16px;font-weight:700;color:#fff}
+.pc-info b{font-size:16px;font-weight:600;letter-spacing:-.02em;display:block}
+.pc-info span{font-size:12.5px;color:var(--ink-3);font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.pc-status{margin-left:auto;display:flex;align-items:center;gap:6px;
+  font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:var(--r-pill)}
+.pc-status .sdot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.st-disponibile{background:var(--green-bg);color:var(--green-ink)}
+.st-occupato{background:var(--orange-bg);color:var(--orange-ink)}
+.st-pausa{background:#f3f3f5;color:var(--ink-2)}
+.pc-spec{font-size:13.5px;color:var(--ink-2);display:flex;align-items:center;gap:7px}
+.pc-load{display:flex;flex-direction:column;gap:6px}
+.pc-load .load-row{display:flex;justify-content:space-between;align-items:center;
+  font-size:13px}
+.pc-load .load-row b{font-weight:600;font-variant-numeric:tabular-nums}
+.pc-load .track{height:6px;border-radius:var(--r-pill);background:#ececef;overflow:hidden}
+.pc-load .track>span{display:block;height:100%;border-radius:var(--r-pill);transition:width .6s}
+.skills{display:flex;flex-wrap:wrap;gap:6px}
+.skill-tag{font-size:12px;font-weight:500;padding:4px 10px;border-radius:var(--r-pill);
+  background:var(--accent-soft);color:var(--accent-ink);border:1px solid rgba(31,58,95,.12)}
+.pc-tasks{display:flex;flex-direction:column;gap:6px}
+.pc-task{display:flex;align-items:center;gap:9px;font-size:13px;padding:7px 10px;
+  background:var(--panel-2);border-radius:var(--r-sm);border:1px solid var(--hair-2)}
+.pc-task .tid{font-weight:700;color:var(--accent);
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;min-width:36px}
+.pc-tasks .empty{font-size:13px;color:var(--ink-3);padding:8px 4px}
+
+/* ── Statistics charts ── */
+.chart-row{display:grid;gap:var(--gap)}
+.chart-row.col2{grid-template-columns:1fr 1fr}
+.chart-row.col3{grid-template-columns:1fr 1fr 1fr}
+.chart-box{background:var(--panel);border:1px solid var(--hair-2);
+  border-radius:var(--r-card);box-shadow:var(--sh-2);padding:22px}
+.chart-box h3{font-size:14.5px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
+.chart-box .ch-sub{font-size:12.5px;color:var(--ink-3);margin-bottom:18px}
+.chart-box canvas{display:block}
+
+/* ── Report section ── */
+.report-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:var(--gap);align-items:start}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.form-group label{font-size:12.5px;font-weight:600;color:var(--ink-2);
+  letter-spacing:.01em;text-transform:uppercase}
+.form-group input,.form-group select{height:36px;padding:0 12px;border-radius:var(--r-ctrl);
+  border:1px solid var(--hair);background:#fff;font-size:13.5px;color:var(--ink);
+  box-shadow:var(--sh-1);outline:none;transition:border-color .12s}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-soft)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sla-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.sla-kpi{padding:14px 16px;border-radius:var(--r-sm);border:1px solid var(--hair-2);
+  background:var(--panel-2)}
+.sla-kpi .sk-val{font-size:28px;font-weight:600;letter-spacing:-.04em;line-height:1;
+  font-variant-numeric:tabular-nums}
+.sla-kpi .sk-lbl{font-size:12px;color:var(--ink-3);margin-top:4px}
+.report-list{display:flex;flex-direction:column;gap:9px}
+.report-item{display:flex;align-items:center;gap:12px;padding:12px 16px;
+  border:1px solid var(--hair-2);border-radius:var(--r-sm);background:var(--panel-2);
+  transition:background .12s}
+.report-item:hover{background:#fff;box-shadow:var(--sh-1)}
+.report-item .ri-icon{width:34px;height:34px;border-radius:9px;flex:none;
+  background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+.report-item .ri-info{flex:1;min-width:0}
+.report-item .ri-info b{font-size:13.5px;font-weight:600;display:block}
+.report-item .ri-info small{font-size:12px;color:var(--ink-3)}
+.report-item .ri-date{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.export-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── Bottom grid ── */
 .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
-@media(max-width:1180px){.kpis{grid-template-columns:repeat(2,1fr)}
-  .mid{grid-template-columns:1fr}.bottom-grid{grid-template-columns:1fr}}
-@media(max-width:860px){.app-body{grid-template-columns:1fr}.sidebar{display:none}}
+
+/* ── Responsive ── */
+@media(max-width:1180px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .mid{grid-template-columns:1fr}
+  .bottom-grid{grid-template-columns:1fr}
+  .chart-row.col2,.chart-row.col3{grid-template-columns:1fr}
+  .report-grid{grid-template-columns:1fr}
+  .sla-kpis{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:860px){
+  .app-body{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .profile-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
+
+<!-- ── SVG Sprite ─────────────────────────────────────────── -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
   <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
@@ -210,229 +360,1015 @@ button,input{font-family:inherit} a{text-decoration:none;color:inherit}
   <symbol id="i-bars" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></symbol>
   <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 14 4 6"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></symbol>
-  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
-  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
   <symbol id="i-euro" viewBox="0 0 24 24"><path d="M4 10h12M4 14h12"/><path d="M19.5 9a6.5 6.5 0 1 0 0 6"/></symbol>
   <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></symbol>
+  <symbol id="i-printer" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
 </svg>
+
+<!-- ── Topbar ──────────────────────────────────────────────── -->
 <header class="topbar">
   <div class="brand">
     <span class="mark"><svg viewBox="0 0 24 24" class="ic"><use href="#i-wrench"/></svg></span>
     <span class="name">Assistenza Tecnica <span>&#xB7; Dashboard</span></span>
   </div>
   <div class="head-right">
-    <label class="search">
-      <svg class="ic ic-16"><use href="#i-search"/></svg>
-      <input type="text" placeholder="Cerca interventi, tecnici…" id="searchInput" oninput="filterTable()">
-    </label>
-    <span class="datechip">06/06/2026 &middot; 13:56</span>
-    <button class="iconbtn" aria-label="Notifiche"><svg class="ic"><use href="#i-bell"/></svg><span class="ping"></span></button>
-    <button class="avatar-btn">CA</button>
+    <span class="datechip" id="clockChip">06/06/2026 &middot; 13:56</span>
   </div>
 </header>
+
+<!-- ── App body ────────────────────────────────────────────── -->
 <div class="app-body">
+
+<!-- Sidebar -->
 <aside class="sidebar">
   <div class="nav-sec">Operazioni</div>
-  <a class="nav-item active"><svg class="ic"><use href="#i-grid"/></svg>Dashboard</a>
-  <a class="nav-item"><svg class="ic"><use href="#i-wrench"/></svg>Richieste<span class="badge">5</span></a>
-  <a class="nav-item"><svg class="ic"><use href="#i-users"/></svg>Tecnici</a>
-  <div class="nav-sec">Report</div>
-  <a class="nav-item"><svg class="ic"><use href="#i-bars"/></svg>Statistiche</a>
-  <a class="nav-item"><svg class="ic"><use href="#i-gauge"/></svg>Report SLA</a>
-  <a class="nav-item"><svg class="ic"><use href="#i-download"/></svg>Esportazioni</a>
-  <div class="nav-sec">Sistema</div>
-  <a class="nav-item"><svg class="ic"><use href="#i-gear"/></svg>Impostazioni</a>
-  <div class="side-foot"><div class="who"><span class="av">CA</span><div><b>Centro Assistenza</b><small>Sistema v1.0</small></div></div></div>
+  <a class="nav-item active" data-section="dashboard">
+    <svg class="ic"><use href="#i-grid"/></svg>Dashboard
+  </a>
+  <a class="nav-item" data-section="richieste">
+    <svg class="ic"><use href="#i-wrench"/></svg>Richieste<span class="badge">5</span>
+  </a>
+  <a class="nav-item" data-section="tecnici">
+    <svg class="ic"><use href="#i-users"/></svg>Tecnici
+  </a>
+  <div class="nav-sec">Analisi</div>
+  <a class="nav-item" data-section="statistiche">
+    <svg class="ic"><use href="#i-bars"/></svg>Statistiche
+  </a>
+  <a class="nav-item" data-section="report">
+    <svg class="ic"><use href="#i-gauge"/></svg>Report &amp; SLA
+  </a>
+  <div class="side-foot">
+    <div class="who">
+      <span class="av">CA</span>
+      <div><b>Centro Assistenza</b><small>Sistema v1.0</small></div>
+    </div>
+  </div>
 </aside>
+
+<!-- Main content -->
 <main class="main">
-<div class="page-head">
-  <div><h1>Dashboard Operativa</h1>
-  <div class="sub">Generata il 06/06/2026 alle 13:56</div></div>
-  <span class="spacer"></span>
-  <button class="btn" onclick="window.print()"><svg class="ic ic-16"><use href="#i-download"/></svg>Stampa</button>
-</div>
-<section class="kpis">
-  <div class="kpi"><div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-wrench"/></svg></span>Richieste totali</div>
-  <div class="num">5</div>
-  <div class="foot"><span class="acc">4 attive</span> &middot; 1 chiuse</div></div>
-  <div class="kpi"><div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-users"/></svg></span>Tecnici</div>
-  <div class="num">3</div>
-  <div class="foot"><span class="acc">2 occupati</span> &middot; 1 liberi</div></div>
-  <div class="kpi warn"><div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-alert"/></svg></span>Non assegnate</div>
-  <div class="num">1</div>
-  <div class="foot"><span class="warnt">da smistare subito</span></div></div>
-  <div class="kpi ok"><div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-euro"/></svg></span>Costo finale</div>
-  <div class="num">&euro; 45</div>
-  <div class="foot"><span class="ok">su &euro; 600 stimati</span></div></div>
-</section>
-<section class="mid">
-<div class="card">
-  <div class="card-head"><h2>Urgenze &amp; non assegnati</h2><span class="meta">priorit&agrave; alta / aperte</span><span class="spacer"></span></div>
-  <div class="urg-list">
-    <div class="urg"><span class="tag urgent dot">URGENTE</span>
-      <div class="desc">R003 &mdash; Giuseppe Verdi<small>PC Desktop Lenovo ThinkCentre &middot; 26/05/2024</small></div>
-      <span class="s-pill s-aperta"><span class="dot"></span>Aperta</span></div>
-    <div class="urg"><span class="tag high dot">ALTA</span>
-      <div class="desc">R001 &mdash; Mario Rossi<small>Laptop HP EliteBook 840 &middot; 25/05/2024</small></div>
-      <span class="s-pill s-incorso"><span class="dot"></span>In Corso</span></div>
-    <div class="urg"><span class="tag high dot">ALTA</span>
-      <div class="desc">R005 &mdash; Carlo Ricci<small>Tablet Apple iPad Pro 11 &middot; 27/05/2024</small></div>
-      <span class="s-pill s-assegnata"><span class="dot"></span>Assegnata</span></div>
-  </div>
-  <div class="divider"></div>
-  <div class="card-head" style="margin-bottom:14px"><h2>Carico tecnici</h2><span class="meta">slot occupati</span></div>
-  <div class="bars">
-    <div class="bar"><span class="lbl" style="font-size:12.5px;font-weight:500;color:var(--ink)">Marco Ferrari</span><span class="track"><span class="fill-orange" style="width:66%"></span></span><span class="pct">2/3</span></div>
-    <div class="bar"><span class="lbl" style="font-size:12.5px;font-weight:500;color:var(--ink)">Sofia Galli</span><span class="track"><span class="fill-accent" style="width:50%"></span></span><span class="pct">1/2</span></div>
-    <div class="bar"><span class="lbl" style="font-size:12.5px;font-weight:500;color:var(--ink)">Luca Martini</span><span class="track"><span class="fill-green" style="width:0%"></span></span><span class="pct">0/4</span></div>
-  </div>
-</div>
-<div style="display:flex;flex-direction:column;gap:var(--gap)">
-<div class="card">
-  <div class="card-head"><h2>Riepilogo richieste</h2><span class="spacer"></span><span class="meta">per stato</span></div>
-  <div class="donut-wrap">
-    <div class="donut">
-      <svg viewBox="0 0 120 120" width="128" height="128">
-        <circle cx="60" cy="60" r="42" fill="none" stroke="#ececef" stroke-width="16"/>
-        <circle cx="60" cy="60" r="42" fill="none" stroke="#af52de" stroke-width="16" stroke-dasharray="105.56 158.34" stroke-dashoffset="-0.00" stroke-linecap="round"/>
-        <circle cx="60" cy="60" r="42" fill="none" stroke="#ff9f0a" stroke-width="16" stroke-dasharray="52.78 211.12" stroke-dashoffset="-105.56" stroke-linecap="round"/>
-        <circle cx="60" cy="60" r="42" fill="none" stroke="#ff3b30" stroke-width="16" stroke-dasharray="52.78 211.12" stroke-dashoffset="-158.34" stroke-linecap="round"/>
-        <circle cx="60" cy="60" r="42" fill="none" stroke="#34c759" stroke-width="16" stroke-dasharray="52.78 211.12" stroke-dashoffset="-211.12" stroke-linecap="round"/>
-      </svg>
-      <div class="ctr"><b>5</b><small>totali</small></div>
+
+  <!-- ══════════════════════════════════════════════════
+       VIEW: DASHBOARD
+  ══════════════════════════════════════════════════ -->
+  <div class="view active" id="view-dashboard">
+    <div class="page-head">
+      <div>
+        <h1>Dashboard Operativa</h1>
+        <div class="sub">Panoramica aggiornata al 06/06/2026 &middot; 13:56</div>
+      </div>
+      <span class="spacer"></span>
+      <button class="btn" onclick="window.print()">
+        <svg class="ic ic-16"><use href="#i-download"/></svg>Stampa
+      </button>
     </div>
-    <div class="legend">
-      <div class="row"><span class="sw" style="background:#af52de"></span>Assegnate<span class="cnt">40%</span><b>2</b></div>
-      <div class="row"><span class="sw" style="background:#ff9f0a"></span>In Corso<span class="cnt">20%</span><b>1</b></div>
-      <div class="row"><span class="sw" style="background:#ff3b30"></span>Aperte<span class="cnt">20%</span><b>1</b></div>
-      <div class="row"><span class="sw" style="background:#34c759"></span>Chiuse<span class="cnt">20%</span><b>1</b></div>
-      <div class="row"><span class="sw" style="background:#ececef"></span>Sosp./Ann.<span class="cnt">0%</span><b>0</b></div>
+
+    <section class="kpis">
+      <div class="kpi">
+        <div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-wrench"/></svg></span>Richieste totali</div>
+        <div class="num">5</div>
+        <div class="foot"><span class="acc">4 attive</span> &middot; 1 chiusa</div>
+      </div>
+      <div class="kpi">
+        <div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-users"/></svg></span>Tecnici</div>
+        <div class="num">3</div>
+        <div class="foot"><span class="acc">2 occupati</span> &middot; 1 libero</div>
+      </div>
+      <div class="kpi warn">
+        <div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-alert"/></svg></span>Non assegnate</div>
+        <div class="num">1</div>
+        <div class="foot"><span class="warnt">da smistare subito</span></div>
+      </div>
+      <div class="kpi ok">
+        <div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-euro"/></svg></span>Costo finale</div>
+        <div class="num">&euro;&thinsp;45</div>
+        <div class="foot"><span class="ok">su &euro;&thinsp;600 stimati</span></div>
+      </div>
+    </section>
+
+    <section class="mid">
+      <div class="card">
+        <div class="card-head"><h2>Urgenze &amp; non assegnati</h2><span class="meta">priorità alta / aperte</span></div>
+        <div class="urg-list">
+          <div class="urg">
+            <span class="tag urgent dot">URGENTE</span>
+            <div class="desc">R003 &mdash; Giuseppe Verdi<small>PC Desktop Lenovo ThinkCentre &middot; 26/05/2024</small></div>
+            <span class="s-pill s-aperta"><span class="dot"></span>Aperta</span>
+          </div>
+          <div class="urg">
+            <span class="tag high dot">ALTA</span>
+            <div class="desc">R001 &mdash; Mario Rossi<small>Laptop HP EliteBook 840 &middot; 25/05/2024</small></div>
+            <span class="s-pill s-incorso"><span class="dot"></span>In Corso</span>
+          </div>
+          <div class="urg">
+            <span class="tag high dot">ALTA</span>
+            <div class="desc">R005 &mdash; Carlo Ricci<small>Tablet Apple iPad Pro 11 &middot; 27/05/2024</small></div>
+            <span class="s-pill s-assegnata"><span class="dot"></span>Assegnata</span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="card-head" style="margin-bottom:14px"><h2>Carico tecnici</h2><span class="meta">slot occupati</span></div>
+        <div class="bars">
+          <div class="bar"><span class="lbl" style="font-size:12.5px;font-weight:500;color:var(--ink)">Marco Ferrari</span><span class="track"><span class="fill-orange" style="width:66%"></span></span><span class="pct">2/3</span></div>
+          <div class="bar"><span class="lbl" style="font-size:12.5px;font-weight:500;color:var(--ink)">Sofia Galli</span><span class="track"><span class="fill-accent" style="width:50%"></span></span><span class="pct">1/2</span></div>
+          <div class="bar"><span class="lbl" style="font-size:12.5px;font-weight:500;color:var(--ink)">Luca Martini</span><span class="track"><span class="fill-green" style="width:0%"></span></span><span class="pct">0/4</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:var(--gap)">
+        <div class="card">
+          <div class="card-head"><h2>Riepilogo richieste</h2><span class="spacer"></span><span class="meta">per stato</span></div>
+          <div class="donut-wrap">
+            <div class="donut">
+              <svg viewBox="0 0 120 120" width="128" height="128">
+                <circle cx="60" cy="60" r="42" fill="none" stroke="#ececef" stroke-width="16"/>
+                <circle cx="60" cy="60" r="42" fill="none" stroke="#af52de" stroke-width="16" stroke-dasharray="105.56 158.34" stroke-dashoffset="-0.00" stroke-linecap="round"/>
+                <circle cx="60" cy="60" r="42" fill="none" stroke="#ff9f0a" stroke-width="16" stroke-dasharray="52.78 211.12" stroke-dashoffset="-105.56" stroke-linecap="round"/>
+                <circle cx="60" cy="60" r="42" fill="none" stroke="#ff3b30" stroke-width="16" stroke-dasharray="52.78 211.12" stroke-dashoffset="-158.34" stroke-linecap="round"/>
+                <circle cx="60" cy="60" r="42" fill="none" stroke="#34c759" stroke-width="16" stroke-dasharray="52.78 211.12" stroke-dashoffset="-211.12" stroke-linecap="round"/>
+              </svg>
+              <div class="ctr"><b>5</b><small>totali</small></div>
+            </div>
+            <div class="legend">
+              <div class="row"><span class="sw" style="background:#af52de"></span>Assegnate<span class="cnt">40%</span><b>2</b></div>
+              <div class="row"><span class="sw" style="background:#ff9f0a"></span>In Corso<span class="cnt">20%</span><b>1</b></div>
+              <div class="row"><span class="sw" style="background:#ff3b30"></span>Aperte<span class="cnt">20%</span><b>1</b></div>
+              <div class="row"><span class="sw" style="background:#34c759"></span>Chiuse<span class="cnt">20%</span><b>1</b></div>
+              <div class="row"><span class="sw" style="background:#ececef"></span>Sosp./Ann.<span class="cnt">0%</span><b>0</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>Distribuzione priorità</h2></div>
+          <div class="bars">
+            <div class="bar"><span class="lbl" style="color:var(--red-ink);font-weight:600">Urgente</span><span class="track"><span class="fill-red" style="width:20%"></span></span><span class="pct">1</span></div>
+            <div class="bar"><span class="lbl" style="color:var(--orange-ink);font-weight:600">Alta</span><span class="track"><span class="fill-orange" style="width:40%"></span></span><span class="pct">2</span></div>
+            <div class="bar"><span class="lbl" style="color:#0050d0;font-weight:600">Media</span><span class="track"><span class="fill-accent" style="width:20%"></span></span><span class="pct">1</span></div>
+            <div class="bar"><span class="lbl" style="color:var(--green-ink);font-weight:600">Bassa</span><span class="track"><span class="fill-green" style="width:20%"></span></span><span class="pct">1</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div><!-- /view-dashboard -->
+
+
+  <!-- ══════════════════════════════════════════════════
+       VIEW: RICHIESTE
+  ══════════════════════════════════════════════════ -->
+  <div class="view" id="view-richieste">
+    <div class="page-head">
+      <div><h1>Richieste</h1><div class="sub">5 interventi &middot; 4 attivi</div></div>
+      <span class="spacer"></span>
+      <button class="btn primary"><svg class="ic ic-16"><use href="#i-wrench"/></svg>Nuova richiesta</button>
     </div>
-  </div>
-</div>
-<div class="card">
-  <div class="card-head"><h2>Distribuzione priorit&agrave;</h2></div>
-  <div class="bars">
-    <div class="bar"><span class="lbl" style="color:var(--red-ink);font-weight:600">Urgente</span><span class="track"><span class="fill-red" style="width:20%"></span></span><span class="pct">1</span></div>
-    <div class="bar"><span class="lbl" style="color:var(--orange-ink);font-weight:600">Alta</span><span class="track"><span class="fill-orange" style="width:40%"></span></span><span class="pct">2</span></div>
-    <div class="bar"><span class="lbl" style="color:#0050d0;font-weight:600">Media</span><span class="track"><span class="fill-accent" style="width:20%"></span></span><span class="pct">1</span></div>
-    <div class="bar"><span class="lbl" style="color:var(--green-ink);font-weight:600">Bassa</span><span class="track"><span class="fill-green" style="width:20%"></span></span><span class="pct">1</span></div>
-  </div>
-</div>
-</div>
-</section>
-<section class="card tbl-card">
-  <div class="card-head"><h2>Elenco Richieste</h2><span class="meta">5 interventi</span><span class="spacer"></span></div>
-  <table class="tbl" id="richiesteTable">
-  <thead><tr><th>#</th><th>Codice</th><th>Cliente</th><th>Dispositivo</th><th>Priorit&agrave;</th><th>Stato</th><th>Stim.</th><th>Fin.</th><th>Data</th></tr></thead>
-  <tbody>
-  <tr>
-    <td class="dt">1</td>
-    <td class="id">R001</td>
-    <td class="nm">Mario Rossi</td>
-    <td class="device">Laptop HP EliteBook 840</td>
-    <td><span class="s-pill p-alta"><span class="dot"></span>Alta</span></td>
-    <td><span class="s-pill s-incorso"><span class="dot"></span>In Corso</span></td>
-    <td class="cost">&euro; 150.00</td>
-    <td class="cost dash">&mdash;</td>
-    <td class="dt">25/05/2024</td>
-  </tr>
-  <tr>
-    <td class="dt">2</td>
-    <td class="id">R002</td>
-    <td class="nm">Laura Bianchi</td>
-    <td class="device">Smartphone Samsung Galaxy S21</td>
-    <td><span class="s-pill p-media"><span class="dot"></span>Media</span></td>
-    <td><span class="s-pill s-assegnata"><span class="dot"></span>Assegnata</span></td>
-    <td class="cost">&euro; 80.00</td>
-    <td class="cost dash">&mdash;</td>
-    <td class="dt">24/05/2024</td>
-  </tr>
-  <tr>
-    <td class="dt">3</td>
-    <td class="id">R003</td>
-    <td class="nm">Giuseppe Verdi</td>
-    <td class="device">PC Desktop Lenovo ThinkCentre</td>
-    <td><span class="s-pill p-urgente"><span class="dot"></span>Urgente</span></td>
-    <td><span class="s-pill s-aperta"><span class="dot"></span>Aperta</span></td>
-    <td class="cost">&euro; 200.00</td>
-    <td class="cost dash">&mdash;</td>
-    <td class="dt">26/05/2024</td>
-  </tr>
-  <tr>
-    <td class="dt">4</td>
-    <td class="id">R004</td>
-    <td class="nm">Anna Neri</td>
-    <td class="device">Stampante Epson EcoTank ET-2850</td>
-    <td><span class="s-pill p-bassa"><span class="dot"></span>Bassa</span></td>
-    <td><span class="s-pill s-chiusa"><span class="dot"></span>Chiusa</span></td>
-    <td class="cost">&euro; 50.00</td>
-    <td class="cost ok">&euro; 45.00</td>
-    <td class="dt">14/05/2024</td>
-  </tr>
-  <tr>
-    <td class="dt">5</td>
-    <td class="id">R005</td>
-    <td class="nm">Carlo Ricci</td>
-    <td class="device">Tablet Apple iPad Pro 11</td>
-    <td><span class="s-pill p-alta"><span class="dot"></span>Alta</span></td>
-    <td><span class="s-pill s-assegnata"><span class="dot"></span>Assegnata</span></td>
-    <td class="cost">&euro; 120.00</td>
-    <td class="cost dash">&mdash;</td>
-    <td class="dt">27/05/2024</td>
-  </tr>
-  </tbody>
-  </table>
-</section>
-<section class="card tbl-card">
-  <div class="card-head"><h2>Elenco Tecnici</h2><span class="meta">3 in organico</span><span class="spacer"></span></div>
-  <table class="tbl">
-  <thead><tr><th>Codice</th><th>Tecnico</th><th>Specializzazione</th><th>Carico</th><th>Avanzamento</th><th>Richieste</th></tr></thead>
-  <tbody>
-  <tr>
-    <td class="id">T001</td>
-    <td><div class="cellrow"><span class="av-sm c-navy">MF</span><span class="nm">Marco Ferrari</span></div></td>
-    <td class="device">Hardware e Componentistica</td>
-    <td class="dt" style="font-weight:600;color:var(--orange-ink)">2 / 3 slot</td>
-    <td><div class="prog"><span class="track"><span style="width:66%;background:var(--orange)"></span></span><span class="v">66%</span></div></td>
-    <td><span class="id" style="font-size:12.5px">R001, R002</span></td>
-  </tr>
-  <tr>
-    <td class="id">T002</td>
-    <td><div class="cellrow"><span class="av-sm c-teal">SG</span><span class="nm">Sofia Galli</span></div></td>
-    <td class="device">Software e Sistemi Operativi</td>
-    <td class="dt" style="font-weight:600;color:var(--green-ink)">1 / 2 slot</td>
-    <td><div class="prog"><span class="track"><span style="width:50%;background:var(--green)"></span></span><span class="v">50%</span></div></td>
-    <td><span class="id" style="font-size:12.5px">R005</span></td>
-  </tr>
-  <tr>
-    <td class="id">T003</td>
-    <td><div class="cellrow"><span class="av-sm c-violet">LM</span><span class="nm">Luca Martini</span></div></td>
-    <td class="device">Stampanti e Periferiche</td>
-    <td class="dt" style="font-weight:600;color:var(--green-ink)">0 / 4 slot</td>
-    <td><div class="prog"><span class="track"><span style="width:0%;background:var(--green)"></span></span><span class="v">0%</span></div></td>
-    <td><span class="dt">&mdash;</span></td>
-  </tr>
-  </tbody>
-  </table>
-</section>
+
+    <div class="section-toolbar">
+      <label class="ctx-search">
+        <svg class="ic ic-16"><use href="#i-search"/></svg>
+        <input type="text" placeholder="Cerca richiesta o ID…" id="searchRichieste" oninput="filterRichieste()">
+      </label>
+      <div class="filter-bar" id="filterPills">
+        <span class="fpill active" data-filter="tutti">Tutti <b style="margin-left:4px;opacity:.6">5</b></span>
+        <span class="fpill" data-filter="aperta">Aperte <b style="margin-left:4px;opacity:.6">1</b></span>
+        <span class="fpill" data-filter="incorso">In Corso <b style="margin-left:4px;opacity:.6">1</b></span>
+        <span class="fpill" data-filter="assegnata">Assegnate <b style="margin-left:4px;opacity:.6">2</b></span>
+        <span class="fpill" data-filter="chiusa">Chiuse <b style="margin-left:4px;opacity:.6">1</b></span>
+      </div>
+    </div>
+
+    <div class="card tbl-card">
+      <table class="tbl tbl-clickable" id="richiesteTable">
+        <thead>
+          <tr>
+            <th>#</th><th>Codice</th><th>Cliente</th><th>Dispositivo</th>
+            <th>Priorità</th><th>Stato</th><th>Tecnico</th>
+            <th>Stimato</th><th>Finale</th><th>Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- R001 -->
+          <tr class="req-row" data-id="r001" data-stato="incorso" data-priority="alta" onclick="toggleDetail('r001')">
+            <td class="dt">1</td>
+            <td class="id">R001</td>
+            <td class="nm">Mario Rossi</td>
+            <td class="device">Laptop HP EliteBook 840</td>
+            <td><span class="s-pill p-alta"><span class="dot"></span>Alta</span></td>
+            <td><span class="s-pill s-incorso"><span class="dot"></span>In Corso</span></td>
+            <td><div class="cellrow"><span class="av-sm c-navy" style="width:24px;height:24px;font-size:9px">MF</span>M. Ferrari</div></td>
+            <td class="cost">&euro;&thinsp;150.00</td>
+            <td class="cost dash">&mdash;</td>
+            <td class="dt">25/05/2024</td>
+          </tr>
+          <tr class="detail-row" id="detail-r001">
+            <td colspan="10">
+              <div class="detail-inner">
+                <div>
+                  <div class="tl-title">Cronologia attività</div>
+                  <div class="tl">
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--accent)"></span><div class="tl-body">Richiesta creata dal cliente<span class="tl-time">25/05/2024 &middot; 09:00</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--purple)"></span><div class="tl-body">Assegnata a Marco Ferrari<span class="tl-time">25/05/2024 &middot; 10:30</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--orange)"></span><div class="tl-body">Diagnosi: problema scheda video rilevato<span class="tl-time">25/05/2024 &middot; 14:00</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--orange)"></span><div class="tl-body">Stato aggiornato: In Corso — attesa ricambio<span class="tl-time">25/05/2024 &middot; 14:20</span></div></div>
+                  </div>
+                </div>
+                <div class="detail-meta">
+                  <div class="tl-title">Dettagli richiesta</div>
+                  <div class="row"><span class="lbl">Descrizione</span><span class="val">Schermo con artefatti grafici, PC si spegne sotto carico</span></div>
+                  <div class="row"><span class="lbl">Dispositivo</span><span class="val">Laptop HP EliteBook 840 G7</span></div>
+                  <div class="row"><span class="lbl">Tecnico</span><span class="val">Marco Ferrari (T001)</span></div>
+                  <div class="row"><span class="lbl">SLA target</span><span class="val">48h — <span style="color:var(--orange-ink);font-weight:600">in scadenza</span></span></div>
+                  <div class="row"><span class="lbl">Note interne</span><span class="val">Ordinato GPU sostitutiva, attesa 2gg</span></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- R002 -->
+          <tr class="req-row" data-id="r002" data-stato="assegnata" data-priority="media" onclick="toggleDetail('r002')">
+            <td class="dt">2</td>
+            <td class="id">R002</td>
+            <td class="nm">Laura Bianchi</td>
+            <td class="device">Smartphone Samsung Galaxy S21</td>
+            <td><span class="s-pill p-media"><span class="dot"></span>Media</span></td>
+            <td><span class="s-pill s-assegnata"><span class="dot"></span>Assegnata</span></td>
+            <td><div class="cellrow"><span class="av-sm c-navy" style="width:24px;height:24px;font-size:9px">MF</span>M. Ferrari</div></td>
+            <td class="cost">&euro;&thinsp;80.00</td>
+            <td class="cost dash">&mdash;</td>
+            <td class="dt">24/05/2024</td>
+          </tr>
+          <tr class="detail-row" id="detail-r002">
+            <td colspan="10">
+              <div class="detail-inner">
+                <div>
+                  <div class="tl-title">Cronologia attività</div>
+                  <div class="tl">
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--accent)"></span><div class="tl-body">Richiesta creata<span class="tl-time">24/05/2024 &middot; 11:00</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--purple)"></span><div class="tl-body">Assegnata a Marco Ferrari<span class="tl-time">24/05/2024 &middot; 12:00</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--purple)"></span><div class="tl-body">In attesa disponibilità tecnico<span class="tl-time">25/05/2024 &middot; 09:00</span></div></div>
+                  </div>
+                </div>
+                <div class="detail-meta">
+                  <div class="tl-title">Dettagli richiesta</div>
+                  <div class="row"><span class="lbl">Descrizione</span><span class="val">Display con linee verticali, touch non risponde</span></div>
+                  <div class="row"><span class="lbl">Dispositivo</span><span class="val">Samsung Galaxy S21 5G</span></div>
+                  <div class="row"><span class="lbl">Tecnico</span><span class="val">Marco Ferrari (T001)</span></div>
+                  <div class="row"><span class="lbl">SLA target</span><span class="val">72h — <span style="color:var(--green-ink);font-weight:600">nei tempi</span></span></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- R003 -->
+          <tr class="req-row" data-id="r003" data-stato="aperta" data-priority="urgente" onclick="toggleDetail('r003')">
+            <td class="dt">3</td>
+            <td class="id">R003</td>
+            <td class="nm">Giuseppe Verdi</td>
+            <td class="device">PC Desktop Lenovo ThinkCentre</td>
+            <td><span class="s-pill p-urgente"><span class="dot"></span>Urgente</span></td>
+            <td><span class="s-pill s-aperta"><span class="dot"></span>Aperta</span></td>
+            <td><span class="dt">—</span></td>
+            <td class="cost">&euro;&thinsp;200.00</td>
+            <td class="cost dash">&mdash;</td>
+            <td class="dt">26/05/2024</td>
+          </tr>
+          <tr class="detail-row" id="detail-r003">
+            <td colspan="10">
+              <div class="detail-inner">
+                <div>
+                  <div class="tl-title">Cronologia attività</div>
+                  <div class="tl">
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--red)"></span><div class="tl-body">Richiesta URGENTE creata<span class="tl-time">26/05/2024 &middot; 08:00</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--orange)"></span><div class="tl-body">Notifica inviata a tutti i tecnici<span class="tl-time">26/05/2024 &middot; 08:05</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--red)"></span><div class="tl-body">⚠ Ancora non assegnata — da smistare<span class="tl-time">06/06/2026 &middot; 13:56</span></div></div>
+                  </div>
+                </div>
+                <div class="detail-meta">
+                  <div class="tl-title">Dettagli richiesta</div>
+                  <div class="row"><span class="lbl">Descrizione</span><span class="val">PC non si avvia, possibile guasto HDD o alimentatore</span></div>
+                  <div class="row"><span class="lbl">Dispositivo</span><span class="val">Lenovo ThinkCentre M720s</span></div>
+                  <div class="row"><span class="lbl">Tecnico</span><span class="val"><span style="color:var(--red-ink);font-weight:600">Non assegnato</span></span></div>
+                  <div class="row"><span class="lbl">SLA target</span><span class="val">24h — <span style="color:var(--red-ink);font-weight:600">SCADUTO</span></span></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- R004 -->
+          <tr class="req-row" data-id="r004" data-stato="chiusa" data-priority="bassa" onclick="toggleDetail('r004')">
+            <td class="dt">4</td>
+            <td class="id">R004</td>
+            <td class="nm">Anna Neri</td>
+            <td class="device">Stampante Epson EcoTank ET-2850</td>
+            <td><span class="s-pill p-bassa"><span class="dot"></span>Bassa</span></td>
+            <td><span class="s-pill s-chiusa"><span class="dot"></span>Chiusa</span></td>
+            <td><div class="cellrow"><span class="av-sm c-violet" style="width:24px;height:24px;font-size:9px">LM</span>L. Martini</div></td>
+            <td class="cost">&euro;&thinsp;50.00</td>
+            <td class="cost ok">&euro;&thinsp;45.00</td>
+            <td class="dt">14/05/2024</td>
+          </tr>
+          <tr class="detail-row" id="detail-r004">
+            <td colspan="10">
+              <div class="detail-inner">
+                <div>
+                  <div class="tl-title">Cronologia attività</div>
+                  <div class="tl">
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--accent)"></span><div class="tl-body">Richiesta creata<span class="tl-time">14/05/2024 &middot; 10:00</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--purple)"></span><div class="tl-body">Assegnata a Luca Martini<span class="tl-time">14/05/2024 &middot; 11:00</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--green)"></span><div class="tl-body">Riparazione completata (reinstallazione driver)<span class="tl-time">15/05/2024 &middot; 09:00</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--green)"></span><div class="tl-body">Chiusa — costo finale &euro;45.00<span class="tl-time">15/05/2024 &middot; 09:30</span></div></div>
+                  </div>
+                </div>
+                <div class="detail-meta">
+                  <div class="tl-title">Dettagli richiesta</div>
+                  <div class="row"><span class="lbl">Descrizione</span><span class="val">Stampante non riconosciuta, driver corrotti</span></div>
+                  <div class="row"><span class="lbl">Dispositivo</span><span class="val">Epson EcoTank ET-2850</span></div>
+                  <div class="row"><span class="lbl">Tecnico</span><span class="val">Luca Martini (T003)</span></div>
+                  <div class="row"><span class="lbl">SLA target</span><span class="val">96h — <span style="color:var(--green-ink);font-weight:600">rispettato</span></span></div>
+                  <div class="row"><span class="lbl">Risparmio</span><span class="val" style="color:var(--green-ink)">-&euro;5.00 sul preventivo</span></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- R005 -->
+          <tr class="req-row" data-id="r005" data-stato="assegnata" data-priority="alta" onclick="toggleDetail('r005')">
+            <td class="dt">5</td>
+            <td class="id">R005</td>
+            <td class="nm">Carlo Ricci</td>
+            <td class="device">Tablet Apple iPad Pro 11</td>
+            <td><span class="s-pill p-alta"><span class="dot"></span>Alta</span></td>
+            <td><span class="s-pill s-assegnata"><span class="dot"></span>Assegnata</span></td>
+            <td><div class="cellrow"><span class="av-sm c-teal" style="width:24px;height:24px;font-size:9px">SG</span>S. Galli</div></td>
+            <td class="cost">&euro;&thinsp;120.00</td>
+            <td class="cost dash">&mdash;</td>
+            <td class="dt">27/05/2024</td>
+          </tr>
+          <tr class="detail-row" id="detail-r005">
+            <td colspan="10">
+              <div class="detail-inner">
+                <div>
+                  <div class="tl-title">Cronologia attività</div>
+                  <div class="tl">
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--accent)"></span><div class="tl-body">Richiesta creata<span class="tl-time">27/05/2024 &middot; 14:00</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--purple)"></span><div class="tl-body">Assegnata a Sofia Galli<span class="tl-time">27/05/2024 &middot; 15:00</span></div></div>
+                    <div class="tl-item"><span class="tl-dot" style="background:var(--purple)"></span><div class="tl-body">Presa in carico, primo contatto tecnico<span class="tl-time">27/05/2024 &middot; 15:30</span></div></div>
+                  </div>
+                </div>
+                <div class="detail-meta">
+                  <div class="tl-title">Dettagli richiesta</div>
+                  <div class="row"><span class="lbl">Descrizione</span><span class="val">iPadOS non si aggiorna, boot loop dopo tentativo</span></div>
+                  <div class="row"><span class="lbl">Dispositivo</span><span class="val">Apple iPad Pro 11" (3ª gen)</span></div>
+                  <div class="row"><span class="lbl">Tecnico</span><span class="val">Sofia Galli (T002)</span></div>
+                  <div class="row"><span class="lbl">SLA target</span><span class="val">48h — <span style="color:var(--green-ink);font-weight:600">nei tempi</span></span></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div><!-- /view-richieste -->
+
+
+  <!-- ══════════════════════════════════════════════════
+       VIEW: TECNICI
+  ══════════════════════════════════════════════════ -->
+  <div class="view" id="view-tecnici">
+    <div class="page-head">
+      <div><h1>Tecnici</h1><div class="sub">3 professionisti in organico</div></div>
+      <span class="spacer"></span>
+      <button class="btn primary"><svg class="ic ic-16"><use href="#i-users"/></svg>Aggiungi tecnico</button>
+    </div>
+
+    <div class="section-toolbar">
+      <label class="ctx-search">
+        <svg class="ic ic-16"><use href="#i-search"/></svg>
+        <input type="text" placeholder="Cerca tecnico…" id="searchTecnici" oninput="filterTecnici()">
+      </label>
+      <div class="filter-bar">
+        <span class="fpill active" id="tf-tutti" onclick="filterTecnici('tutti')">Tutti</span>
+        <span class="fpill" id="tf-disponibile" onclick="filterTecnici('disponibile')">Disponibili</span>
+        <span class="fpill" id="tf-occupato" onclick="filterTecnici('occupato')">Occupati</span>
+      </div>
+    </div>
+
+    <div class="profile-grid" id="profileGrid">
+
+      <!-- T001 Marco Ferrari -->
+      <div class="profile-card" data-status="occupato" data-name="marco ferrari">
+        <div class="pc-header">
+          <span class="av-lg c-navy">MF</span>
+          <div class="pc-info">
+            <b>Marco Ferrari</b>
+            <span>T001</span>
+          </div>
+          <span class="pc-status st-occupato"><span class="sdot"></span>Occupato</span>
+        </div>
+        <div class="pc-spec">
+          <svg class="ic ic-16" style="color:var(--ink-3)"><use href="#i-cpu"/></svg>
+          Hardware e Componentistica
+        </div>
+        <div class="pc-load">
+          <div class="load-row"><span style="font-size:13px;color:var(--ink-2)">Carico di lavoro</span><b style="color:var(--orange-ink)">2 / 3 slot</b></div>
+          <div class="track"><span style="width:66%;background:var(--orange)"></span></div>
+        </div>
+        <div class="skills">
+          <span class="skill-tag">Hardware</span>
+          <span class="skill-tag">Componentistica</span>
+          <span class="skill-tag">Networking</span>
+          <span class="skill-tag">Assemblaggio PC</span>
+        </div>
+        <div class="pc-tasks">
+          <div class="tl-title" style="margin-bottom:8px">Compiti assegnati</div>
+          <div class="pc-task">
+            <span class="tid">R001</span>
+            <span style="flex:1;font-size:12.5px">Laptop HP EliteBook 840 — Mario Rossi</span>
+            <span class="s-pill s-incorso" style="font-size:11px;padding:2px 7px"><span class="dot"></span>In Corso</span>
+          </div>
+          <div class="pc-task">
+            <span class="tid">R002</span>
+            <span style="flex:1;font-size:12.5px">Samsung Galaxy S21 — Laura Bianchi</span>
+            <span class="s-pill s-assegnata" style="font-size:11px;padding:2px 7px"><span class="dot"></span>Assegnata</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- T002 Sofia Galli -->
+      <div class="profile-card" data-status="occupato" data-name="sofia galli">
+        <div class="pc-header">
+          <span class="av-lg c-teal">SG</span>
+          <div class="pc-info">
+            <b>Sofia Galli</b>
+            <span>T002</span>
+          </div>
+          <span class="pc-status st-occupato"><span class="sdot"></span>Occupata</span>
+        </div>
+        <div class="pc-spec">
+          <svg class="ic ic-16" style="color:var(--ink-3)"><use href="#i-cpu"/></svg>
+          Software e Sistemi Operativi
+        </div>
+        <div class="pc-load">
+          <div class="load-row"><span style="font-size:13px;color:var(--ink-2)">Carico di lavoro</span><b style="color:var(--accent)">1 / 2 slot</b></div>
+          <div class="track"><span style="width:50%;background:var(--accent)"></span></div>
+        </div>
+        <div class="skills">
+          <span class="skill-tag">Windows</span>
+          <span class="skill-tag">macOS</span>
+          <span class="skill-tag">Linux</span>
+          <span class="skill-tag">Office 365</span>
+          <span class="skill-tag">iOS / iPadOS</span>
+        </div>
+        <div class="pc-tasks">
+          <div class="tl-title" style="margin-bottom:8px">Compiti assegnati</div>
+          <div class="pc-task">
+            <span class="tid">R005</span>
+            <span style="flex:1;font-size:12.5px">Apple iPad Pro 11 — Carlo Ricci</span>
+            <span class="s-pill s-assegnata" style="font-size:11px;padding:2px 7px"><span class="dot"></span>Assegnata</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- T003 Luca Martini -->
+      <div class="profile-card" data-status="disponibile" data-name="luca martini">
+        <div class="pc-header">
+          <span class="av-lg c-violet">LM</span>
+          <div class="pc-info">
+            <b>Luca Martini</b>
+            <span>T003</span>
+          </div>
+          <span class="pc-status st-disponibile"><span class="sdot"></span>Disponibile</span>
+        </div>
+        <div class="pc-spec">
+          <svg class="ic ic-16" style="color:var(--ink-3)"><use href="#i-printer"/></svg>
+          Stampanti e Periferiche
+        </div>
+        <div class="pc-load">
+          <div class="load-row"><span style="font-size:13px;color:var(--ink-2)">Carico di lavoro</span><b style="color:var(--green-ink)">0 / 4 slot</b></div>
+          <div class="track"><span style="width:0%;background:var(--green)"></span></div>
+        </div>
+        <div class="skills">
+          <span class="skill-tag">Stampanti</span>
+          <span class="skill-tag">Scanner</span>
+          <span class="skill-tag">Periferiche</span>
+          <span class="skill-tag">Driver</span>
+          <span class="skill-tag">Reti LAN</span>
+        </div>
+        <div class="pc-tasks">
+          <div class="tl-title" style="margin-bottom:8px">Compiti assegnati</div>
+          <div class="empty">Nessun compito assegnato — disponibile per nuove richieste</div>
+        </div>
+      </div>
+
+    </div><!-- /profile-grid -->
+  </div><!-- /view-tecnici -->
+
+
+  <!-- ══════════════════════════════════════════════════
+       VIEW: STATISTICHE
+  ══════════════════════════════════════════════════ -->
+  <div class="view" id="view-statistiche">
+    <div class="page-head">
+      <div><h1>Statistiche</h1><div class="sub">Analisi operativa &middot; Gen–Giu 2026</div></div>
+      <span class="spacer"></span>
+      <button class="btn"><svg class="ic ic-16"><use href="#i-download"/></svg>Esporta dati</button>
+    </div>
+
+    <!-- KPI summary -->
+    <section class="kpis">
+      <div class="kpi ok">
+        <div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-check"/></svg></span>Risolte YTD</div>
+        <div class="num">47</div>
+        <div class="foot"><span class="ok">+12% vs anno prec.</span></div>
+      </div>
+      <div class="kpi">
+        <div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-clock"/></svg></span>Tempo medio</div>
+        <div class="num">2.4<span style="font-size:18px;font-weight:500">gg</span></div>
+        <div class="foot"><span class="acc">-0.3gg vs mese prec.</span></div>
+      </div>
+      <div class="kpi warn">
+        <div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-gauge"/></svg></span>SLA rispettati</div>
+        <div class="num">89<span style="font-size:18px;font-weight:500">%</span></div>
+        <div class="foot"><span class="warnt">target 95%</span></div>
+      </div>
+      <div class="kpi ok">
+        <div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-euro"/></svg></span>Fatturato YTD</div>
+        <div class="num">&euro;<span style="font-size:26px">3.2k</span></div>
+        <div class="foot"><span class="ok">su obiettivo &euro;4k</span></div>
+      </div>
+    </section>
+
+    <!-- Row 1: Line + Bar -->
+    <div class="chart-row col2">
+      <div class="chart-box">
+        <h3>Andamento Richieste</h3>
+        <div class="ch-sub">Trend mensile Jan–Giu 2026</div>
+        <canvas id="chartTrend" height="200"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Richieste per Tecnico</h3>
+        <div class="ch-sub">Distribuzione mensile per operatore</div>
+        <canvas id="chartTecnici" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Row 2: 3 medium charts -->
+    <div class="chart-row col3">
+      <div class="chart-box">
+        <h3>Stato Richieste</h3>
+        <div class="ch-sub">Distribuzione attuale</div>
+        <canvas id="chartStato" height="220"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Tipologia Guasto</h3>
+        <div class="ch-sub">Per categoria dispositivo</div>
+        <canvas id="chartGuasto" height="220"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Performance Tecnici</h3>
+        <div class="ch-sub">Indici multi-dimensionali</div>
+        <canvas id="chartRadar" height="220"></canvas>
+      </div>
+    </div>
+
+    <!-- Row 3: Resolution time + SLA trend -->
+    <div class="chart-row col2">
+      <div class="chart-box">
+        <h3>Tempo Medio Risoluzione</h3>
+        <div class="ch-sub">Giorni lavorativi per mese</div>
+        <canvas id="chartTempo" height="200"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>SLA Compliance</h3>
+        <div class="ch-sub">Percentuale rispetto target 95%</div>
+        <canvas id="chartSLA" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Row 4: Carico orario (full width) -->
+    <div class="chart-box">
+      <h3>Volume Richieste per Giorno della Settimana</h3>
+      <div class="ch-sub">Media storica — distribuzione settimanale</div>
+      <canvas id="chartGiorni" height="140"></canvas>
+    </div>
+
+    <!-- Row 5: Priorità stacked + Costi mensili -->
+    <div class="chart-row col2">
+      <div class="chart-box">
+        <h3>Priorità per Mese</h3>
+        <div class="ch-sub">Composizione urgenza mensile</div>
+        <canvas id="chartPriorita" height="200"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Costi Mensili</h3>
+        <div class="ch-sub">Preventivato vs Consuntivo (&euro;)</div>
+        <canvas id="chartCosti" height="200"></canvas>
+      </div>
+    </div>
+  </div><!-- /view-statistiche -->
+
+
+  <!-- ══════════════════════════════════════════════════
+       VIEW: REPORT
+  ══════════════════════════════════════════════════ -->
+  <div class="view" id="view-report">
+    <div class="page-head">
+      <div><h1>Report &amp; SLA</h1><div class="sub">Generazione, visualizzazione ed esportazione</div></div>
+      <span class="spacer"></span>
+    </div>
+
+    <!-- SLA KPIs -->
+    <div class="card">
+      <div class="card-head"><h2>Riepilogo SLA</h2><span class="meta">periodo corrente</span></div>
+      <div class="sla-kpis">
+        <div class="sla-kpi">
+          <div class="sk-val" style="color:var(--green-ink)">89%</div>
+          <div class="sk-lbl">SLA rispettati (YTD)</div>
+        </div>
+        <div class="sla-kpi">
+          <div class="sk-val" style="color:var(--orange-ink)">2.4gg</div>
+          <div class="sk-lbl">Tempo medio risoluzione</div>
+        </div>
+        <div class="sla-kpi">
+          <div class="sk-val" style="color:var(--red-ink)">1</div>
+          <div class="sk-lbl">Richieste SLA scadute</div>
+        </div>
+        <div class="sla-kpi">
+          <div class="sk-val">47</div>
+          <div class="sk-lbl">Richieste risolte (YTD)</div>
+        </div>
+        <div class="sla-kpi">
+          <div class="sk-val" style="color:var(--green-ink)">&euro;3.2k</div>
+          <div class="sk-lbl">Fatturato consuntivato</div>
+        </div>
+        <div class="sla-kpi">
+          <div class="sk-val">95%</div>
+          <div class="sk-lbl">Target SLA aziendale</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-grid">
+      <!-- Generate report form -->
+      <div class="card">
+        <div class="card-head"><h2>Genera Report</h2></div>
+        <div class="form-group">
+          <label>Tipo di report</label>
+          <select id="reportType">
+            <option>Report Operativo Completo</option>
+            <option>Analisi SLA</option>
+            <option>Prestazioni Tecnici</option>
+            <option>Riepilogo Costi</option>
+            <option>Report Richieste per Periodo</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Data inizio</label>
+            <input type="date" id="reportFrom" value="2026-01-01">
+          </div>
+          <div class="form-group">
+            <label>Data fine</label>
+            <input type="date" id="reportTo" value="2026-06-06">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Formato esportazione</label>
+          <select id="reportFormat">
+            <option>PDF</option>
+            <option>CSV</option>
+            <option>Excel (.xlsx)</option>
+            <option>JSON</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:6px">
+          <button class="btn primary" onclick="generateReport()" style="flex:1">
+            <svg class="ic ic-16"><use href="#i-file"/></svg>Genera Report
+          </button>
+          <button class="btn" onclick="window.print()">
+            <svg class="ic ic-16"><use href="#i-download"/></svg>Stampa
+          </button>
+        </div>
+        <div id="reportMsg" style="display:none;margin-top:12px;padding:10px 14px;
+          border-radius:var(--r-sm);background:var(--green-bg);color:var(--green-ink);
+          font-size:13.5px;font-weight:500">
+          <svg class="ic ic-16" style="display:inline;vertical-align:middle;margin-right:6px"><use href="#i-check"/></svg>
+          Report generato con successo. Download avviato.
+        </div>
+      </div>
+
+      <!-- Recent reports -->
+      <div class="card">
+        <div class="card-head"><h2>Report Recenti</h2><span class="spacer"></span><span class="meta">ultimi 30 giorni</span></div>
+        <div class="report-list">
+          <div class="report-item">
+            <span class="ri-icon"><svg class="ic ic-16"><use href="#i-file"/></svg></span>
+            <div class="ri-info"><b>Report Operativo — Maggio 2026</b><small>PDF &middot; 47 richieste &middot; 3 tecnici</small></div>
+            <span class="ri-date">01/06/2026</span>
+          </div>
+          <div class="report-item">
+            <span class="ri-icon"><svg class="ic ic-16"><use href="#i-gauge"/></svg></span>
+            <div class="ri-info"><b>Analisi SLA — Q1 2026</b><small>Excel &middot; SLA 91% &middot; target 95%</small></div>
+            <span class="ri-date">02/04/2026</span>
+          </div>
+          <div class="report-item">
+            <span class="ri-icon"><svg class="ic ic-16"><use href="#i-users"/></svg></span>
+            <div class="ri-info"><b>Prestazioni Tecnici — Apr 2026</b><small>PDF &middot; 3 tecnici &middot; 9 richieste</small></div>
+            <span class="ri-date">01/05/2026</span>
+          </div>
+          <div class="report-item">
+            <span class="ri-icon"><svg class="ic ic-16"><use href="#i-euro"/></svg></span>
+            <div class="ri-info"><b>Riepilogo Costi — Q1 2026</b><small>CSV &middot; &euro;1.240 consuntivato</small></div>
+            <span class="ri-date">02/04/2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLA per tecnico table -->
+    <div class="card tbl-card">
+      <div class="card-head" style="padding:20px 22px 14px;margin:0">
+        <h2>SLA per Tecnico</h2><span class="meta">periodo corrente</span>
+      </div>
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Codice</th><th>Tecnico</th><th>Assegnate</th><th>Risolte</th>
+            <th>SLA rispettati</th><th>Tempo medio</th><th>Costo consuntivato</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="id">T001</td>
+            <td><div class="cellrow"><span class="av-sm c-navy">MF</span><span class="nm">Marco Ferrari</span></div></td>
+            <td class="dt">18</td><td class="dt">16</td>
+            <td><span class="s-pill s-chiusa"><span class="dot"></span>88%</span></td>
+            <td class="dt">2.6 gg</td>
+            <td class="cost ok">&euro;&thinsp;1.280</td>
+          </tr>
+          <tr>
+            <td class="id">T002</td>
+            <td><div class="cellrow"><span class="av-sm c-teal">SG</span><span class="nm">Sofia Galli</span></div></td>
+            <td class="dt">16</td><td class="dt">15</td>
+            <td><span class="s-pill s-chiusa"><span class="dot"></span>93%</span></td>
+            <td class="dt">2.1 gg</td>
+            <td class="cost ok">&euro;&thinsp;1.080</td>
+          </tr>
+          <tr>
+            <td class="id">T003</td>
+            <td><div class="cellrow"><span class="av-sm c-violet">LM</span><span class="nm">Luca Martini</span></div></td>
+            <td class="dt">13</td><td class="dt">13</td>
+            <td><span class="s-pill s-chiusa"><span class="dot"></span>100%</span></td>
+            <td class="dt">2.4 gg</td>
+            <td class="cost ok">&euro;&thinsp;840</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div><!-- /view-report -->
+
 </main>
-</div>
+</div><!-- /app-body -->
+
 <script>
-function filterTable(){
-  var q=document.getElementById('searchInput').value.toLowerCase();
-  document.querySelectorAll('#richiesteTable tbody tr').forEach(function(row){
-    row.style.display=row.textContent.toLowerCase().includes(q)?'':'none';
-  });
-}
-document.querySelectorAll('.nav-item').forEach(function(item){
-  item.addEventListener('click',function(){
-    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+/* ── Navigation ─────────────────────────────────────── */
+document.querySelectorAll('.nav-item[data-section]').forEach(function(item) {
+  item.addEventListener('click', function() {
+    var sec = item.dataset.section;
+    // Update nav active state
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
     item.classList.add('active');
+    // Switch view
+    document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+    document.getElementById('view-' + sec).classList.add('active');
+    // Lazy-init charts on first Statistics visit
+    if (sec === 'statistiche') initCharts();
   });
 });
+
+/* ── Richieste: filter pills + search ───────────────── */
+var activeFilter = 'tutti';
+
+document.querySelectorAll('#filterPills .fpill').forEach(function(pill) {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('#filterPills .fpill').forEach(function(p) { p.classList.remove('active'); });
+    pill.classList.add('active');
+    activeFilter = pill.dataset.filter;
+    filterRichieste();
+  });
+});
+
+function filterRichieste() {
+  var q = document.getElementById('searchRichieste').value.toLowerCase();
+  document.querySelectorAll('#richiesteTable tbody .req-row').forEach(function(row) {
+    var matchFilter = activeFilter === 'tutti' || row.dataset.stato === activeFilter;
+    var matchSearch = row.textContent.toLowerCase().includes(q);
+    var show = matchFilter && matchSearch;
+    row.style.display = show ? '' : 'none';
+    // Hide associated detail row when parent is hidden
+    var det = document.getElementById('detail-' + row.dataset.id);
+    if (det && !show) det.classList.remove('open');
+  });
+}
+
+/* ── Richieste: expandable detail rows ──────────────── */
+function toggleDetail(id) {
+  var det = document.getElementById('detail-' + id);
+  if (!det) return;
+  det.classList.toggle('open');
+}
+
+/* ── Tecnici: search + status filter ───────────────── */
+var activeTechFilter = 'tutti';
+
+['tutti','disponibile','occupato'].forEach(function(f) {
+  var el = document.getElementById('tf-' + f);
+  if (el) el.addEventListener('click', function() {
+    activeTechFilter = f;
+    ['tutti','disponibile','occupato'].forEach(function(x) {
+      var e = document.getElementById('tf-' + x);
+      if (e) e.classList.toggle('active', x === f);
+    });
+    filterTecnici();
+  });
+});
+
+function filterTecnici() {
+  var q = (document.getElementById('searchTecnici').value || '').toLowerCase();
+  document.querySelectorAll('#profileGrid .profile-card').forEach(function(card) {
+    var matchStatus = activeTechFilter === 'tutti' || card.dataset.status === activeTechFilter;
+    var matchSearch = card.dataset.name.includes(q) || card.textContent.toLowerCase().includes(q);
+    card.style.display = (matchStatus && matchSearch) ? '' : 'none';
+  });
+}
+
+/* ── Report: generate button ────────────────────────── */
+function generateReport() {
+  var msg = document.getElementById('reportMsg');
+  msg.style.display = 'block';
+  setTimeout(function() { msg.style.display = 'none'; }, 3500);
+}
+
+/* ── Charts (lazy init on first Statistics visit) ───── */
+var chartsInitialized = false;
+
+function initCharts() {
+  if (chartsInitialized) return;
+  chartsInitialized = true;
+
+  var months = ['Gen','Feb','Mar','Apr','Mag','Giu'];
+  var accent = '#1f3a5f', blue = '#0a84ff', green = '#34c759',
+      orange = '#ff9f0a', red = '#ff3b30', purple = '#af52de',
+      teal = '#2aa6a0';
+
+  var defaults = {
+    font: { family: '-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif', size: 12 },
+    color: '#8e8e93'
+  };
+  Chart.defaults.font = defaults.font;
+  Chart.defaults.color = defaults.color;
+  Chart.defaults.plugins.legend.labels.boxWidth = 10;
+  Chart.defaults.plugins.legend.labels.padding = 14;
+
+  /* 1. Line: trend mensile richieste */
+  new Chart(document.getElementById('chartTrend'), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        { label:'Totale', data:[6,8,7,10,9,5], borderColor:accent, backgroundColor:'rgba(31,58,95,.08)', tension:.4, fill:true, pointRadius:4 },
+        { label:'Chiuse', data:[5,7,6,9,8,1], borderColor:green, backgroundColor:'transparent', tension:.4, pointRadius:4 },
+        { label:'Aperte', data:[1,1,1,1,1,4], borderColor:red, backgroundColor:'transparent', tension:.4, borderDash:[4,3], pointRadius:4 }
+      ]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' } }, x:{ grid:{ display:false } } } }
+  });
+
+  /* 2. Bar: richieste per tecnico mensile */
+  new Chart(document.getElementById('chartTecnici'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        { label:'M. Ferrari', data:[2,3,2,4,3,2], backgroundColor:accent },
+        { label:'S. Galli',   data:[2,3,3,4,4,2], backgroundColor:teal },
+        { label:'L. Martini', data:[2,2,2,2,2,1], backgroundColor:purple }
+      ]
+    },
+    options: { responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ x:{ stacked:false, grid:{ display:false } }, y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' } } } }
+  });
+
+  /* 3. Doughnut: stato richieste */
+  new Chart(document.getElementById('chartStato'), {
+    type: 'doughnut',
+    data: {
+      labels:['Assegnate','In Corso','Aperte','Chiuse'],
+      datasets:[{ data:[2,1,1,1], backgroundColor:[purple,orange,red,green], borderWidth:0, hoverOffset:6 }]
+    },
+    options:{ responsive:true, cutout:'65%', plugins:{ legend:{ position:'bottom' } } }
+  });
+
+  /* 4. Doughnut: tipologia guasto */
+  new Chart(document.getElementById('chartGuasto'), {
+    type: 'doughnut',
+    data: {
+      labels:['Hardware','Software','Periferiche','Mobile','Networking'],
+      datasets:[{ data:[18,14,8,5,2], backgroundColor:[accent,blue,purple,orange,teal], borderWidth:0, hoverOffset:6 }]
+    },
+    options:{ responsive:true, cutout:'65%', plugins:{ legend:{ position:'bottom' } } }
+  });
+
+  /* 5. Radar: performance tecnici */
+  new Chart(document.getElementById('chartRadar'), {
+    type: 'radar',
+    data: {
+      labels:['Velocità','Soddisfazione','Carico','Competenze','Puntualità'],
+      datasets:[
+        { label:'M. Ferrari', data:[75,80,90,88,70], borderColor:accent, backgroundColor:'rgba(31,58,95,.12)', pointRadius:4 },
+        { label:'S. Galli',   data:[85,92,70,95,90], borderColor:teal,   backgroundColor:'rgba(42,166,160,.12)', pointRadius:4 },
+        { label:'L. Martini', data:[90,88,30,82,100],borderColor:purple, backgroundColor:'rgba(175,82,222,.12)', pointRadius:4 }
+      ]
+    },
+    options:{ responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ r:{ beginAtZero:true, max:100, ticks:{ stepSize:25 }, grid:{ color:'rgba(0,0,0,.07)' }, pointLabels:{ font:{ size:11 } } } } }
+  });
+
+  /* 6. Bar: tempo medio risoluzione */
+  new Chart(document.getElementById('chartTempo'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets:[{ label:'Giorni', data:[3.1,2.8,2.6,2.4,2.2,2.4], backgroundColor:blue, borderRadius:6, borderSkipped:false }]
+    },
+    options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback:function(v){ return v+'gg'; } } } } }
+  });
+
+  /* 7. Line: SLA compliance */
+  new Chart(document.getElementById('chartSLA'), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets:[
+        { label:'SLA %', data:[85,87,88,91,93,89], borderColor:green, backgroundColor:'rgba(52,199,89,.1)', fill:true, tension:.4, pointRadius:5 },
+        { label:'Target 95%', data:[95,95,95,95,95,95], borderColor:red, borderDash:[6,4], pointRadius:0, borderWidth:1.5 }
+      ]
+    },
+    options:{ responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ x:{ grid:{ display:false } }, y:{ min:75, max:100, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback:function(v){ return v+'%'; } } } } }
+  });
+
+  /* 8. Bar: volume per giorno settimana */
+  new Chart(document.getElementById('chartGiorni'), {
+    type: 'bar',
+    data: {
+      labels:['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'],
+      datasets:[{ label:'Richieste medie', data:[3.2,2.8,2.5,2.9,3.1,0.8,0.2], backgroundColor:[accent,accent,accent,accent,accent,'rgba(31,58,95,.4)','rgba(31,58,95,.2)'], borderRadius:6, borderSkipped:false }]
+    },
+    options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' } } } }
+  });
+
+  /* 9. Bar stacked: priorità per mese */
+  new Chart(document.getElementById('chartPriorita'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets:[
+        { label:'Urgente', data:[1,0,1,1,0,1], backgroundColor:red },
+        { label:'Alta',    data:[2,3,2,4,3,2], backgroundColor:orange },
+        { label:'Media',   data:[2,3,2,3,4,1], backgroundColor:blue },
+        { label:'Bassa',   data:[1,2,2,2,2,1], backgroundColor:green }
+      ]
+    },
+    options:{ responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ x:{ stacked:true, grid:{ display:false } }, y:{ stacked:true, beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' } } } }
+  });
+
+  /* 10. Bar grouped: costi mensili */
+  new Chart(document.getElementById('chartCosti'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets:[
+        { label:'Preventivato', data:[650,720,600,800,750,600], backgroundColor:'rgba(31,58,95,.25)', borderRadius:4 },
+        { label:'Consuntivato', data:[580,640,555,760,710,45],  backgroundColor:accent, borderRadius:4 }
+      ]
+    },
+    options:{ responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback:function(v){ return '€'+v; } } } } }
+  });
+}
+
+/* ── Live clock ─────────────────────────────────────── */
+(function updateClock() {
+  var now = new Date();
+  var d = String(now.getDate()).padStart(2,'0') + '/' +
+          String(now.getMonth()+1).padStart(2,'0') + '/' + now.getFullYear();
+  var t = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clockChip').textContent = d + ' · ' + t;
+  setTimeout(updateClock, 30000);
+})();
 </script>
 </body>
 </html>
