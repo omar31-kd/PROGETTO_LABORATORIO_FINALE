@@ -10,17 +10,6 @@
 #include "richiesta.h"
 
 /* =========================================================================
- * Costanti simboliche
- * ========================================================================= */
-
-/** @brief Lunghezza massima del codice identificativo del tecnico. */
-#define MAX_CODICE_TECNICO       16
-
-/** @brief Lunghezza massima del nome e cognome del tecnico. */
-#define MAX_NOME_TECNICO         64
-
-/** @brief Lunghezza massima della descrizione della specializzazione. */
-#define MAX_SPECIALIZZAZIONE     64
 
 /** @brief Numero massimo assoluto di richieste assegnabili a un tecnico. */
 #define MAX_RICHIESTE_ASSOLUTO  128
