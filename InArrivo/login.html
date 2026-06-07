@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>InArrivo – Accedi</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg-color: #f5f5f7;
+  --surface: #ffffff;
+  --text-main: #1d1d1f;
+  --text-muted: #86868b;
+  --border: #d2d2d7;
+  --primary: #0071e3;
+  --primary-hover: #0077ed;
+  --error: #ff3b30;
+  --success: #34c759;
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.brand h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text-main);
+}
+
+.brand p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-weight: 400;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 32px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 24px;
+  background: #e5e5ea;
+  border-radius: 9px;
+  padding: 2px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-input {
+  width: 100%;
+  background: #f5f5f7;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 15px;
+  color: var(--text-main);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.form-input::placeholder { color: var(--text-muted); }
+.form-input:focus {
+  outline: none;
+  background: var(--surface);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+
+.btn-primary:hover { background: var(--primary-hover); }
+
+.divider {
+  text-align: center;
+  margin: 24px 0;
+  position: relative;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+  z-index: 1;
+}
+
+.divider span {
+  background: var(--surface);
+  padding: 0 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  position: relative;
+  z-index: 2;
+  font-weight: 500;
+}
+
+.demo-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.demo-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.demo-card {
+  padding: 12px 16px;
+  background: #f5f5f7;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.demo-card:hover { background: #e5e5ea; }
+.demo-name { font-size: 14px; font-weight: 600; }
+.demo-email { font-size: 12px; color: var(--text-muted); }
+.demo-arrow { color: var(--text-muted); font-size: 16px; }
+
+.msg {
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  display: none;
+  text-align: center;
+}
+.msg.error { background: #ffeceb; color: var(--error); }
+.msg.success { background: #e8f8ec; color: var(--success); }
+.msg.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="brand">
+    <h1>InArrivo</h1>
+    <p>Gestione ordini professionale.</p>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Accedi</button>
+      <button class="tab-btn" id="tabRegister" onclick="switchTab('register')">Registrati</button>
+    </div>
+
+    <div id="msgBox" class="msg"></div>
+
+    <!-- LOGIN -->
+    <div id="formLogin">
+      <div class="form-group">
+        <input class="form-input" id="loginEmail" type="email" placeholder="Email" />
+      </div>
+      <div class="form-group">
+        <input class="form-input" id="loginPwd" type="password" placeholder="Password" />
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Accedi</button>
+
+      <div class="divider"><span>OPPURE TESTA UN ACCOUNT DEMO</span></div>
+
+      <div class="demo-section">
+        <div class="demo-cards" id="demoCards"></div>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="formRegister" style="display:none">
+      <div class="form-group">
+        <input class="form-input" id="regName" type="text" placeholder="Nome Ristorante" />
+      </div>
+      <div class="form-group">
+        <input class="form-input" id="regEmail" type="email" placeholder="Email" />
+      </div>
+      <div class="form-group">
+        <input class="form-input" id="regPwd" type="password" placeholder="Password" />
+      </div>
+      <button class="btn-primary" onclick="doRegister()">Crea Account</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB_KEY = 'inarrivo_db';
+
+function getDB(){
+  const raw = localStorage.getItem(DB_KEY);
+  return raw ? JSON.parse(raw) : { restaurants:{}, currentUser:null };
+}
+function saveDB(db){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+function seedDemo(){
+  const db = getDB();
+  const demos = [
+    { id:'demo1', name:'Ristorante Apple', email:'demo@apple.com', password:'password', 
+      slogan:'Design puro e minimalista.', partners:['Consegna Diretta'], 
+      theme:'light',
+      orders:{attesa:[],lavoro:[],done:[]} }
+  ];
+  demos.forEach(d=>{ if(!db.restaurants[d.id]) db.restaurants[d.id]=d; });
+  saveDB(db);
+}
+
+function renderDemoCards(){
+  const db = getDB();
+  const container = document.getElementById('demoCards');
+  container.innerHTML='';
+  Object.values(db.restaurants).forEach(r=>{
+    if(!r.id.startsWith('demo')) return;
+    const el = document.createElement('div');
+    el.className='demo-card';
+    el.innerHTML=`<div><div class="demo-name">${r.name}</div><div class="demo-email">${r.email}</div></div><div class="demo-arrow">›</div>`;
+    el.onclick=()=>{ document.getElementById('loginEmail').value=r.email; document.getElementById('loginPwd').value='password'; doLogin(); };
+    container.appendChild(el);
+  });
+}
+
+function switchTab(tab){
+  document.getElementById('formLogin').style.display = tab==='login'?'block':'none';
+  document.getElementById('formRegister').style.display = tab==='register'?'block':'none';
+  document.getElementById('tabLogin').classList.toggle('active', tab==='login');
+  document.getElementById('tabRegister').classList.toggle('active', tab==='register');
+  document.getElementById('msgBox').className='msg';
+}
+
+function showMsg(text, type){
+  const el=document.getElementById('msgBox');
+  el.textContent=text; el.className=`msg ${type} show`;
+}
+
+function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pwd=document.getElementById('loginPwd').value;
+  if(!email||!pwd){showMsg('Compila tutti i campi','error');return;}
+  const db=getDB();
+  const user=Object.values(db.restaurants).find(r=>r.email.toLowerCase()===email&&r.password===pwd);
+  if(!user){showMsg('Credenziali non valide','error');return;}
+  db.currentUser=user.id;
+  saveDB(db);
+  window.location.href='admin.html';
+}
+
+function doRegister(){
+  const name=document.getElementById('regName').value.trim();
+  const email=document.getElementById('regEmail').value.trim().toLowerCase();
+  const pwd=document.getElementById('regPwd').value;
+  if(!name||!email||!pwd){showMsg('Compila tutti i campi','error');return;}
+  const db=getDB();
+  if(Object.values(db.restaurants).find(r=>r.email.toLowerCase()===email)){
+    showMsg('Email già registrata','error');return;
+  }
+  const id='rest_'+Date.now();
+  db.restaurants[id]={
+    id, name, email, password:pwd,
+    slogan:'', partners:[], theme:'light',
+    orders:{attesa:[],lavoro:[],done:[]}
+  };
+  db.currentUser=id;
+  saveDB(db);
+  window.location.href='admin.html';
+}
+
+function checkAuth(){
+  const db=getDB();
+  if(db.currentUser && db.restaurants[db.currentUser]){
+    window.location.href='admin.html';
+  }
+}
+
+checkAuth();
+seedDemo();
+renderDemoCards();
+</script>
+</body>
+</html>

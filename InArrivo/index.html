@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InArrivo – Stato Ordini</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07070f;
+      --surface: #0f0f1a;
+      --surface2: #171724;
+      --border: rgba(255,255,255,0.06);
+      --accent: #6c63ff;
+      --green: #00d68f;
+      --amber: #ffb347;
+      --text: #f0f0f8;
+      --muted: #5a5a7a;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: -10%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, rgba(108,99,255,0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -20%;
+      right: -10%;
+      width: 50vw;
+      height: 50vw;
+      background: radial-gradient(circle, rgba(0,214,143,0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* HEADER */
+    header {
+      position: relative; z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15,15,26,0.8);
+      backdrop-filter: blur(20px);
+    }
+    .logo {
+      font-size: 2rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #6c63ff, #ff6b6b, #00d68f);
+      background-size: 200% 200%;
+      animation: gradShift 6s ease infinite;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1.5px;
+    }
+    @keyframes gradShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .logo span { font-weight: 300; }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,214,143,0.1);
+      border: 1px solid rgba(0,214,143,0.25);
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    .header-time {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* MAIN */
+    main {
+      position: relative; z-index: 5;
+      padding: 36px 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .sections-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-bottom: 40px;
+    }
+
+    /* SECTION */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .section-header {
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .section-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+    }
+    .sec-lavoro .section-icon { background: rgba(108,99,255,0.15); }
+    .sec-done .section-icon { background: rgba(0,214,143,0.15); }
+
+    .section-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .sec-lavoro .section-title { color: var(--accent); }
+    .sec-done .section-title { color: var(--green); }
+
+    .section-sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .divider-lavoro { height: 2px; background: linear-gradient(90deg, rgba(108,99,255,0.6), transparent); }
+    .divider-done { height: 2px; background: linear-gradient(90deg, rgba(0,214,143,0.6), transparent); }
+
+    .orders-grid {
+      padding: 20px 24px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      min-height: 120px;
+    }
+
+    /* ORDER CHIP */
+    .order-chip {
+      border-radius: 14px;
+      padding: 14px 22px;
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -1px;
+      font-variant-numeric: tabular-nums;
+      animation: chipIn .4s cubic-bezier(.34,1.56,.64,1);
+      position: relative;
+      overflow: hidden;
+    }
+    @keyframes chipIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .chip-lavoro {
+      background: rgba(108,99,255,0.12);
+      border: 1.5px solid rgba(108,99,255,0.35);
+      color: #a99fff;
+    }
+    .chip-done {
+      background: rgba(0,214,143,0.1);
+      border: 1.5px solid rgba(0,214,143,0.3);
+      color: var(--green);
+    }
+    .chip-lavoro::before, .chip-done::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.05), transparent);
+      pointer-events: none;
+    }
+
+    /* LATEST CHIP - big highlight */
+    .chip-lavoro.latest {
+      background: rgba(108,99,255,0.25);
+      border-color: var(--accent);
+      box-shadow: 0 0 24px rgba(108,99,255,0.4);
+      animation: chipIn .4s cubic-bezier(.34,1.56,.64,1), glow 2s ease-in-out infinite;
+    }
+    .chip-done.latest {
+      background: rgba(0,214,143,0.2);
+      border-color: var(--green);
+      box-shadow: 0 0 24px rgba(0,214,143,0.35);
+    }
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(108,99,255,0.4); }
+      50% { box-shadow: 0 0 40px rgba(108,99,255,0.7); }
+    }
+
+    .empty-msg {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 12px 0;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* BOTTOM ROW */
+    .bottom-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 28px;
+      align-items: start;
+    }
+
+    /* TICKER */
+    .ticker-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 24px;
+      overflow: hidden;
+      position: relative;
+    }
+    .ticker-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .ticker-track {
+      display: flex;
+      gap: 24px;
+      animation: ticker 20s linear infinite;
+      white-space: nowrap;
+    }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    .ticker-item {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .ticker-item span { color: var(--text); }
+
+    /* QR PANEL */
+    .qr-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      min-width: 220px;
+    }
+    .qr-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    #qrCanvas {
+      border-radius: 12px;
+      background: white;
+      padding: 10px;
+      width: 160px !important;
+      height: 160px !important;
+    }
+    .qr-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* FOOTER */
+    footer {
+      position: relative; z-index: 5;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* NOTIFY */
+    .notify-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #00d68f, #00b87a);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-align: center;
+      transform: translateY(-100%);
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+      z-index: 200;
+      letter-spacing: 0.5px;
+    }
+    .notify-bar.show { transform: translateY(0); }
+
+    @media (max-width: 768px) {
+      header { padding: 14px 20px; }
+      .logo { font-size: 1.4rem; }
+      main { padding: 20px; }
+      .sections-grid { grid-template-columns: 1fr; }
+      .bottom-row { grid-template-columns: 1fr; }
+      .order-chip { font-size: 1.5rem; padding: 10px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="notify-bar" id="notifyBar"></div>
+
+<header>
+  <div class="logo">In<span>Arrivo</span></div>
+  <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+  <div class="header-time" id="clock">--:--</div>
+</header>
+
+<main>
+  <div class="sections-grid">
+
+    <!-- IN LAVORAZIONE -->
+    <div class="section sec-lavoro">
+      <div class="section-header">
+        <div class="section-icon">🔥</div>
+        <div>
+          <div class="section-title">In Lavorazione</div>
+          <div class="section-sub">Ordini in preparazione</div>
+        </div>
+      </div>
+      <div class="divider-lavoro"></div>
+      <div class="orders-grid" id="lavoroGrid">
+        <div class="empty-msg">⏳ Nessun ordine in lavorazione</div>
+      </div>
+    </div>
+
+    <!-- COMPLETATI -->
+    <div class="section sec-done">
+      <div class="section-header">
+        <div class="section-icon">✅</div>
+        <div>
+          <div class="section-title">Pronti per il Ritiro</div>
+          <div class="section-sub">Ordini completati</div>
+        </div>
+      </div>
+      <div class="divider-done"></div>
+      <div class="orders-grid" id="doneGrid">
+        <div class="empty-msg">✨ Nessun ordine pronto</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-row">
+
+    <!-- TICKER -->
+    <div class="ticker-wrap">
+      <div class="ticker-label">📢 Messaggi</div>
+      <div class="ticker-track" id="tickerTrack">
+        <span class="ticker-item">Benvenuti da <span>InArrivo</span> &nbsp;•&nbsp;</span>
+        <span class="ticker-item">Il vostro ordine verrà chiamato appena pronto &nbsp;•&nbsp;</span>
+        <span class="ticker-item">Grazie per la pazienza &nbsp;•&nbsp;</span>
+        <span class="ticker-item">Conservate il vostro scontrino &nbsp;•&nbsp;</span>
+        <span class="ticker-item">Benvenuti da <span>InArrivo</span> &nbsp;•&nbsp;</span>
+        <span class="ticker-item">Il vostro ordine verrà chiamato appena pronto &nbsp;•&nbsp;</span>
+        <span class="ticker-item">Grazie per la pazienza &nbsp;•&nbsp;</span>
+        <span class="ticker-item">Conservate il vostro scontrino &nbsp;•&nbsp;</span>
+      </div>
+    </div>
+
+    <!-- QR CODE -->
+    <div class="qr-panel">
+      <div class="qr-title">📱 Scansiona</div>
+      <canvas id="qrCanvas"></canvas>
+      <div class="qr-hint">Inquadra per monitorare<br>i tuoi ordini</div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  InArrivo &copy; 2025 — Sistema di gestione ordini
+</footer>
+
+<script>
+  const STORAGE_KEY = 'inarrivo_orders';
+  const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('inarrivo') : null;
+
+  let orders = { attesa: [], lavoro: [], done: [] };
+  let prevLavoro = [], prevDone = [];
+
+  // ─── CLOCK ─────────────────────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // ─── QR CODE ───────────────────────────────────────────────────────
+  function generateQR() {
+    const url = window.location.href.split('?')[0];
+    QRCode.toCanvas(document.getElementById('qrCanvas'), url, {
+      width: 160,
+      color: { dark: '#0f0f1a', light: '#ffffff' },
+      errorCorrectionLevel: 'M'
+    }, function(err) {
+      if (err) console.error(err);
+    });
+  }
+
+  // ─── LOAD & RENDER ─────────────────────────────────────────────────
+  function load() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const newOrders = JSON.parse(saved);
+      checkNotifications(newOrders);
+      orders = newOrders;
+      renderAll();
+    }
+  }
+
+  function checkNotifications(newOrders) {
+    // New order in "done" that wasn't there before
+    newOrders.done.forEach(o => {
+      if (!prevDone.find(p => p.id === o.id)) {
+        notify(`✅ Ordine #${o.num} PRONTO! Vieni a ritirarlo.`);
+      }
+    });
+    prevLavoro = newOrders.lavoro.slice();
+    prevDone = newOrders.done.slice();
+  }
+
+  function renderAll() {
+    renderSection('lavoroGrid', orders.lavoro, 'chip-lavoro', '⏳ Nessun ordine in lavorazione');
+    renderSection('doneGrid', orders.done, 'chip-done', '✨ Nessun ordine pronto');
+  }
+
+  function renderSection(gridId, list, chipClass, emptyMsg) {
+    const grid = document.getElementById(gridId);
+    grid.innerHTML = '';
+    if (!list || list.length === 0) {
+      grid.innerHTML = `<div class="empty-msg">${emptyMsg}</div>`;
+      return;
+    }
+    const sorted = [...list].sort((a, b) => parseInt(a.num) - parseInt(b.num));
+    sorted.forEach((order, i) => {
+      const chip = document.createElement('div');
+      chip.className = `order-chip ${chipClass}${i === sorted.length - 1 ? ' latest' : ''}`;
+      chip.textContent = `#${order.num}`;
+      chip.setAttribute('title', `Aggiunto alle ${order.time}`);
+      grid.appendChild(chip);
+    });
+  }
+
+  // ─── NOTIFICATION ──────────────────────────────────────────────────
+  let notifyTimeout;
+  function notify(msg) {
+    const bar = document.getElementById('notifyBar');
+    bar.textContent = msg;
+    bar.classList.add('show');
+    if ('speechSynthesis' in window) {
+      const utt = new SpeechSynthesisUtterance(msg.replace(/[#✅🔥]/g, ''));
+      utt.lang = 'it-IT';
+      utt.rate = 0.9;
+      speechSynthesis.speak(utt);
+    }
+    clearTimeout(notifyTimeout);
+    notifyTimeout = setTimeout(() => bar.classList.remove('show'), 5000);
+  }
+
+  // ─── SYNC ──────────────────────────────────────────────────────────
+  if (bc) {
+    bc.onmessage = e => {
+      if (e.data && e.data.type === 'update') {
+        checkNotifications(e.data.orders);
+        orders = e.data.orders;
+        renderAll();
+      }
+    };
+  }
+
+  // Polling fallback
+  setInterval(load, 1500);
+
+  // ─── START ─────────────────────────────────────────────────────────
+  window.addEventListener('load', () => {
+    load();
+    generateQR();
+  });
+</script>
+</body>
+</html>

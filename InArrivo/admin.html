@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>InArrivo – Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg-color: #f5f5f7;
+  --surface: #ffffff;
+  --text-main: #1d1d1f;
+  --text-muted: #86868b;
+  --border: #d2d2d7;
+  --primary: #0071e3;
+  --primary-hover: #0077ed;
+  --success: #34c759;
+  --warning: #ff9f0a;
+  --danger: #ff3b30;
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* SIDEBAR */
+aside {
+  width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+}
+
+.brand {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  padding: 0 12px;
+  margin-bottom: 32px;
+  color: var(--text-main);
+}
+
+.nav-item {
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text-main);
+  font-weight: 500;
+  font-size: 15px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: all 0.2s;
+}
+
+.nav-item:hover { background: #f5f5f7; }
+.nav-item.active { background: #e5e5ea; font-weight: 600; }
+
+.sidebar-bottom { margin-top: auto; border-top: 1px solid var(--border); padding-top: 16px; }
+
+/* MAIN CONTENT */
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-color);
+}
+
+header {
+  padding: 20px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+.btn-outline {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-outline:hover { background: #f5f5f7; }
+
+.view { display: none; padding: 0 32px 32px; flex: 1; overflow-y: auto; }
+.view.active { display: flex; }
+
+/* ORDERS VIEW */
+#viewOrders { gap: 24px; }
+.col-keypad { width: 300px; flex-shrink: 0; }
+.col-kanban { flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.card-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+
+/* KEYPAD */
+.display {
+  background: #f5f5f7;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: right;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+}
+.display-placeholder { color: #d2d2d7; font-size: 24px; font-weight: 500; }
+
+.keypad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.key {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 10px;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.key:active { background: #e5e5ea; transform: scale(0.96); }
+.key-action { color: var(--text-muted); font-size: 16px; font-weight: 600; }
+
+.btn-primary {
+  background: var(--primary); color: #fff; border: none; border-radius: 12px;
+  padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s;
+  width: 100%; margin-top: 16px;
+}
+.btn-primary:hover { background: var(--primary-hover); }
+
+/* KANBAN */
+.k-col { background: var(--surface); border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); }
+.k-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #fdfdfd; }
+.k-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.k-count { background: #e5e5ea; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+.k-attesa .k-title { color: var(--warning); }
+.k-lavoro .k-title { color: var(--primary); }
+.k-done .k-title { color: var(--success); }
+
+.drop-zone { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+.drop-zone.drag-over { background: rgba(0, 113, 227, 0.05); }
+
+.order-card {
+  background: #f5f5f7; border-radius: 12px; padding: 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: grab; transition: transform 0.2s;
+}
+.order-card:active { cursor: grabbing; transform: scale(0.98); }
+.order-card.dragging { opacity: 0.5; }
+.order-num { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+.order-del { background: none; border: none; color: #c7c7cc; cursor: pointer; font-size: 16px; }
+.order-del:hover { color: var(--danger); }
+
+/* SETTINGS VIEW */
+#viewSettings { flex-direction: column; max-width: 600px; gap: 24px; }
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+.form-input { width: 100%; background: #f5f5f7; border: 1px solid transparent; border-radius: 10px; padding: 12px 16px; font-size: 15px; color: var(--text-main); font-family: inherit; }
+.form-input:focus { outline: none; background: var(--surface); border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1); }
+select.form-input { appearance: none; }
+
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="brand">InArrivo</div>
+  <div class="nav-item active" onclick="switchView('Orders')" id="tabOrders">Gestione Ordini</div>
+  <div class="nav-item" onclick="switchView('Settings')" id="tabSettings">Impostazioni</div>
+  
+  <div class="sidebar-bottom">
+    <div class="nav-item" onclick="window.open('display.html','_blank')">Apri Display Clienti ↗</div>
+    <div class="nav-item" style="color:var(--danger)" onclick="logout()">Esci</div>
+  </div>
+</aside>
+
+<main>
+  <header>
+    <div class="header-title" id="headerTitle">Ordini</div>
+    <button class="btn-outline" style="color:var(--danger); border-color:#ffcecb;" onclick="resetOrders()">Azzera Ordini</button>
+  </header>
+
+  <!-- VIEW ORDERS -->
+  <div id="viewOrders" class="view active">
+    <div class="col-keypad">
+      <div class="card">
+        <div class="display">
+          <span class="display-placeholder" id="placeholder">N°</span>
+          <span id="displayVal" style="display:none"></span>
+        </div>
+        <div class="keypad-grid">
+          <button class="key" onclick="pressKey('1')">1</button>
+          <button class="key" onclick="pressKey('2')">2</button>
+          <button class="key" onclick="pressKey('3')">3</button>
+          <button class="key" onclick="pressKey('4')">4</button>
+          <button class="key" onclick="pressKey('5')">5</button>
+          <button class="key" onclick="pressKey('6')">6</button>
+          <button class="key" onclick="pressKey('7')">7</button>
+          <button class="key" onclick="pressKey('8')">8</button>
+          <button class="key" onclick="pressKey('9')">9</button>
+          <button class="key key-action" onclick="pressKey('del')">⌫</button>
+          <button class="key" onclick="pressKey('0')">0</button>
+          <button class="key key-action" onclick="pressKey('clear')">C</button>
+        </div>
+        <button class="btn-primary" onclick="addOrder()">Aggiungi Ordine</button>
+      </div>
+    </div>
+
+    <div class="col-kanban">
+      <div class="k-col k-attesa">
+        <div class="k-header"><div class="k-title">In Attesa</div><div class="k-count" id="countAttesa">0</div></div>
+        <div class="drop-zone" id="zone-attesa" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'attesa')"></div>
+      </div>
+      <div class="k-col k-lavoro">
+        <div class="k-header"><div class="k-title">In Preparazione</div><div class="k-count" id="countLavoro">0</div></div>
+        <div class="drop-zone" id="zone-lavoro" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'lavoro')"></div>
+      </div>
+      <div class="k-col k-done">
+        <div class="k-header"><div class="k-title">Pronti</div><div class="k-count" id="countDone">0</div></div>
+        <div class="drop-zone" id="zone-done" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'done')"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW SETTINGS -->
+  <div id="viewSettings" class="view">
+    <div class="card">
+      <div class="card-title">Informazioni Display</div>
+      <div class="form-group">
+        <label class="form-label">Nome Ristorante</label>
+        <input type="text" class="form-input" id="setRestName">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Slogan o Messaggio</label>
+        <input type="text" class="form-input" id="setSlogan">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Partners (separati da virgola)</label>
+        <input type="text" class="form-input" id="setPartners">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Tema Display</label>
+        <select class="form-input" id="setTheme">
+          <option value="light">Chiaro (Apple Style)</option>
+          <option value="dark">Scuro (Apple Style Dark)</option>
+        </select>
+      </div>
+      <button class="btn-primary" style="width:auto; padding: 12px 24px;" onclick="saveSettings()">Salva Impostazioni</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const DB_KEY = 'inarrivo_db';
+let db = null;
+let me = null;
+
+function init(){
+  const raw = localStorage.getItem(DB_KEY);
+  if(!raw){ window.location.href='login.html'; return; }
+  db = JSON.parse(raw);
+  if(!db.currentUser || !db.restaurants[db.currentUser]){
+    window.location.href='login.html'; return;
+  }
+  me = db.restaurants[db.currentUser];
+  
+  if(!me.orders) me.orders = {attesa:[],lavoro:[],done:[]};
+  renderOrders();
+
+  document.getElementById('setRestName').value = me.name;
+  document.getElementById('setSlogan').value = me.slogan || '';
+  document.getElementById('setPartners').value = (me.partners||[]).join(', ');
+  document.getElementById('setTheme').value = me.theme || 'light';
+
+  window.addEventListener('storage', e => {
+    if(e.key === DB_KEY){
+      db = JSON.parse(e.newValue);
+      if(db.restaurants[db.currentUser]){
+        me = db.restaurants[db.currentUser];
+        renderOrders();
+      }
+    }
+  });
+}
+
+function saveDB(){
+  db.restaurants[me.id] = me;
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+  if(typeof BroadcastChannel !== 'undefined'){
+    new BroadcastChannel('inarrivo_sync').postMessage('update');
+  }
+}
+
+function logout(){
+  db.currentUser = null;
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+  window.location.href='login.html';
+}
+
+function switchView(v){
+  document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  document.getElementById('view'+v).classList.add('active');
+  document.getElementById('tab'+v).classList.add('active');
+  document.getElementById('headerTitle').textContent = v === 'Orders' ? 'Gestione Ordini' : 'Impostazioni';
+}
+
+let curInput = '';
+function pressKey(k){
+  if(k==='del') curInput = curInput.slice(0,-1);
+  else if(k==='clear') curInput = '';
+  else if(curInput.length<4) curInput += k;
+  
+  const d = document.getElementById('displayVal');
+  const p = document.getElementById('placeholder');
+  if(curInput){
+    d.textContent = curInput; d.style.display='block'; p.style.display='none';
+  }else{
+    d.style.display='none'; p.style.display='block';
+  }
+}
+
+function addOrder(){
+  if(!curInput) return;
+  const num = curInput;
+  const exists = ['attesa','lavoro','done'].some(z => me.orders[z].find(o=>o.num===num));
+  if(exists){ alert('Ordine già presente!'); return; }
+  
+  me.orders.attesa.push({ id:'o_'+Date.now(), num });
+  saveDB();
+  pressKey('clear');
+  renderOrders();
+}
+
+let draggedId = null;
+function onDragStart(e, id){ draggedId = id; e.currentTarget.classList.add('dragging'); }
+function onDragEnd(e){ e.currentTarget.classList.remove('dragging'); draggedId=null; }
+function onDragOver(e){ e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function onDragLeave(e){ e.currentTarget.classList.remove('drag-over'); }
+function onDrop(e, targetZone){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(!draggedId) return;
+  let moved = null;
+  ['attesa','lavoro','done'].forEach(z => {
+    const idx = me.orders[z].findIndex(o=>o.id===draggedId);
+    if(idx!==-1) moved = me.orders[z].splice(idx,1)[0];
+  });
+  if(moved){
+    me.orders[targetZone].push(moved);
+    saveDB();
+    renderOrders();
+  }
+}
+
+function renderOrders(){
+  ['attesa','lavoro','done'].forEach(z => {
+    const zone = document.getElementById('zone-'+z);
+    document.getElementById('count'+z.charAt(0).toUpperCase()+z.slice(1)).textContent = me.orders[z].length;
+    zone.innerHTML = '';
+    me.orders[z].forEach(o => {
+      const el = document.createElement('div');
+      el.className = 'order-card';
+      el.draggable = true;
+      el.ondragstart = (e)=>onDragStart(e, o.id);
+      el.ondragend = onDragEnd;
+      el.innerHTML = `
+        <div class="order-num">${o.num}</div>
+        <button class="order-del" onclick="deleteOrder('${o.id}')">✕</button>
+      `;
+      zone.appendChild(el);
+    });
+  });
+}
+
+function deleteOrder(id){
+  ['attesa','lavoro','done'].forEach(z => {
+    me.orders[z] = me.orders[z].filter(o=>o.id!==id);
+  });
+  saveDB();
+  renderOrders();
+}
+
+function resetOrders(){
+  if(confirm('Azzare tutti gli ordini?')){
+    me.orders = {attesa:[],lavoro:[],done:[]};
+    saveDB();
+    renderOrders();
+  }
+}
+
+function saveSettings(){
+  me.name = document.getElementById('setRestName').value;
+  me.slogan = document.getElementById('setSlogan').value;
+  me.partners = document.getElementById('setPartners').value.split(',').map(s=>s.trim()).filter(s=>s);
+  me.theme = document.getElementById('setTheme').value;
+  saveDB();
+  alert('Impostazioni salvate.');
+}
+
+init();
+
+if(typeof BroadcastChannel !== 'undefined'){
+  const bc = new BroadcastChannel('inarrivo_sync');
+  bc.onmessage = (e) => {
+    if(e.data==='update'){
+      const raw = localStorage.getItem(DB_KEY);
+      if(raw){
+        db = JSON.parse(raw);
+        if(db.restaurants[db.currentUser]){
+          me = db.restaurants[db.currentUser];
+          renderOrders();
+        }
+      }
+    }
+  }
+}
+</script>
+</body>
+</html>
