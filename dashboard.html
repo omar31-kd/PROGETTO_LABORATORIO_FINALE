@@ -880,6 +880,20 @@ button,input,select{font-family:inherit} a{text-decoration:none;color:inherit}
       <button class="btn"><svg class="ic ic-16"><use href="#i-download"/></svg>Esporta dati</button>
     </div>
 
+    <!-- Toolbar: filtro periodo e ricerca per metrica -->
+    <div class="section-toolbar">
+      <label class="ctx-search">
+        <svg class="ic ic-16"><use href="#i-search"/></svg>
+        <input type="text" placeholder="Filtra per metrica…" id="searchStats" oninput="filterStats()">
+      </label>
+      <div class="filter-bar" id="statsPeriodPills">
+        <span class="fpill active" data-period="ytd">Anno (YTD)</span>
+        <span class="fpill" data-period="q2">Q2 2026</span>
+        <span class="fpill" data-period="q1">Q1 2026</span>
+        <span class="fpill" data-period="mag">Mag 2026</span>
+      </div>
+    </div>
+
     <!-- KPI summary -->
     <section class="kpis">
       <div class="kpi ok">
@@ -971,6 +985,41 @@ button,input,select{font-family:inherit} a{text-decoration:none;color:inherit}
         <canvas id="chartCosti" height="200"></canvas>
       </div>
     </div>
+    <!-- Row 6: Soddisfazione cliente + Richieste per categoria -->
+    <div class="chart-row col2">
+      <div class="chart-box" data-metric="soddisfazione cliente">
+        <h3>Soddisfazione Cliente</h3>
+        <div class="ch-sub">Media mensile (scala 1–10)</div>
+        <canvas id="chartSoddisfazione" height="200"></canvas>
+      </div>
+      <div class="chart-box" data-metric="richieste categoria tipologia">
+        <h3>Richieste per Categoria</h3>
+        <div class="ch-sub">Distribuzione tipologia intervento</div>
+        <canvas id="chartCategorie" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Row 7: Distribuzione oraria (full width) -->
+    <div class="chart-box" data-metric="distribuzione oraria fasce orario">
+      <h3>Distribuzione Oraria Richieste</h3>
+      <div class="ch-sub">Arrivo richieste per fascia oraria — media storica</div>
+      <canvas id="chartOrario" height="140"></canvas>
+    </div>
+
+    <!-- Row 8: Efficienza risoluzione + Saturazione tecnici -->
+    <div class="chart-row col2">
+      <div class="chart-box" data-metric="efficienza risoluzione intervento">
+        <h3>Efficienza Risoluzione</h3>
+        <div class="ch-sub">Risolto al 1° intervento vs riaperture</div>
+        <canvas id="chartEfficienza" height="200"></canvas>
+      </div>
+      <div class="chart-box" data-metric="saturazione tecnici capacità carico">
+        <h3>Indice di Saturazione Tecnici</h3>
+        <div class="ch-sub">Capacità usata sul massimo disponibile (%)</div>
+        <canvas id="chartSaturazione" height="200"></canvas>
+      </div>
+    </div>
+
   </div><!-- /view-statistiche -->
 
 
@@ -981,6 +1030,20 @@ button,input,select{font-family:inherit} a{text-decoration:none;color:inherit}
     <div class="page-head">
       <div><h1>Report &amp; SLA</h1><div class="sub">Generazione, visualizzazione ed esportazione</div></div>
       <span class="spacer"></span>
+    </div>
+
+    <!-- Toolbar: ricerca report e filtro per formato -->
+    <div class="section-toolbar">
+      <label class="ctx-search">
+        <svg class="ic ic-16"><use href="#i-search"/></svg>
+        <input type="text" placeholder="Cerca report o SLA…" id="searchReport" oninput="filterReports()">
+      </label>
+      <div class="filter-bar" id="reportFormatPills">
+        <span class="fpill active" data-rformat="tutti">Tutti</span>
+        <span class="fpill" data-rformat="pdf">PDF</span>
+        <span class="fpill" data-rformat="excel">Excel</span>
+        <span class="fpill" data-rformat="csv">CSV</span>
+      </div>
     </div>
 
     <!-- SLA KPIs -->
@@ -1067,22 +1130,22 @@ button,input,select{font-family:inherit} a{text-decoration:none;color:inherit}
       <div class="card">
         <div class="card-head"><h2>Report Recenti</h2><span class="spacer"></span><span class="meta">ultimi 30 giorni</span></div>
         <div class="report-list">
-          <div class="report-item">
+          <div class="report-item" data-format="pdf" data-search="report operativo maggio 2026 pdf 47 richieste 3 tecnici">
             <span class="ri-icon"><svg class="ic ic-16"><use href="#i-file"/></svg></span>
             <div class="ri-info"><b>Report Operativo — Maggio 2026</b><small>PDF &middot; 47 richieste &middot; 3 tecnici</small></div>
             <span class="ri-date">01/06/2026</span>
           </div>
-          <div class="report-item">
+          <div class="report-item" data-format="excel" data-search="analisi sla q1 2026 excel sla 91% target 95%">
             <span class="ri-icon"><svg class="ic ic-16"><use href="#i-gauge"/></svg></span>
             <div class="ri-info"><b>Analisi SLA — Q1 2026</b><small>Excel &middot; SLA 91% &middot; target 95%</small></div>
             <span class="ri-date">02/04/2026</span>
           </div>
-          <div class="report-item">
+          <div class="report-item" data-format="pdf" data-search="prestazioni tecnici aprile 2026 pdf 3 tecnici 9 richieste">
             <span class="ri-icon"><svg class="ic ic-16"><use href="#i-users"/></svg></span>
             <div class="ri-info"><b>Prestazioni Tecnici — Apr 2026</b><small>PDF &middot; 3 tecnici &middot; 9 richieste</small></div>
             <span class="ri-date">01/05/2026</span>
           </div>
-          <div class="report-item">
+          <div class="report-item" data-format="csv" data-search="riepilogo costi q1 2026 csv 1240 consuntivato">
             <span class="ri-icon"><svg class="ic ic-16"><use href="#i-euro"/></svg></span>
             <div class="ri-info"><b>Riepilogo Costi — Q1 2026</b><small>CSV &middot; &euro;1.240 consuntivato</small></div>
             <span class="ri-date">02/04/2026</span>
@@ -1213,6 +1276,50 @@ function generateReport() {
   var msg = document.getElementById('reportMsg');
   msg.style.display = 'block';
   setTimeout(function() { msg.style.display = 'none'; }, 3500);
+}
+
+/* ── Report: ricerca + filtro formato ───────────────── */
+var activeReportFormat = 'tutti';
+
+document.querySelectorAll('#reportFormatPills .fpill').forEach(function(pill) {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('#reportFormatPills .fpill').forEach(function(p) { p.classList.remove('active'); });
+    pill.classList.add('active');
+    activeReportFormat = pill.dataset.rformat;
+    filterReports();
+  });
+});
+
+function filterReports() {
+  var q = (document.getElementById('searchReport').value || '').toLowerCase();
+  document.querySelectorAll('.report-item[data-search]').forEach(function(item) {
+    var fmt  = item.dataset.format || '';
+    var text = item.dataset.search || '';
+    var matchFormat = activeReportFormat === 'tutti' || fmt === activeReportFormat;
+    var matchSearch = !q || text.includes(q);
+    item.style.display = (matchFormat && matchSearch) ? '' : 'none';
+  });
+}
+
+/* ── Statistiche: filtro periodo ────────────────────── */
+document.querySelectorAll('#statsPeriodPills .fpill').forEach(function(pill) {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('#statsPeriodPills .fpill').forEach(function(p) { p.classList.remove('active'); });
+    pill.classList.add('active');
+    // In produzione qui si aggiornerebbero i dataset dei chart col periodo selezionato
+  });
+});
+
+/* ── Statistiche: ricerca per metrica ───────────────── */
+function filterStats() {
+  var q = (document.getElementById('searchStats').value || '').toLowerCase();
+  document.querySelectorAll('#view-statistiche .chart-box, #view-statistiche .chart-row').forEach(function(el) {
+    if (el.classList.contains('chart-row')) return; // gestito dai figli
+    var title   = (el.querySelector('h3') || {}).textContent || '';
+    var metric  = el.dataset.metric || '';
+    var visible = !q || title.toLowerCase().includes(q) || metric.toLowerCase().includes(q);
+    el.style.display = visible ? '' : 'none';
+  });
 }
 
 /* ── Charts (lazy init on first Statistics visit) ───── */
@@ -1357,6 +1464,82 @@ function initCharts() {
       ]
     },
     options:{ responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' }, ticks:{ callback:function(v){ return '€'+v; } } } } }
+  });
+
+  /* 11. Line: soddisfazione cliente (media mensile 1-10) */
+  new Chart(document.getElementById('chartSoddisfazione'), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets:[{
+        label:'Media voto', data:[7.8,8.0,8.2,8.5,8.7,8.4],
+        borderColor:green, backgroundColor:'rgba(52,199,89,.1)',
+        fill:true, tension:.4, pointRadius:5, pointHoverRadius:7
+      }]
+    },
+    options:{ responsive:true, plugins:{ legend:{ display:false } },
+      scales:{ x:{ grid:{ display:false } },
+               y:{ min:6, max:10, grid:{ color:'rgba(0,0,0,.05)' },
+                   ticks:{ callback:function(v){ return v+'/10'; } } } } }
+  });
+
+  /* 12. Horizontal bar: richieste per categoria */
+  new Chart(document.getElementById('chartCategorie'), {
+    type: 'bar',
+    data: {
+      labels:['Hardware','Software','Periferiche','Mobile','Networking'],
+      datasets:[{ label:'Richieste', data:[18,14,8,5,2],
+        backgroundColor:[accent,blue,purple,orange,teal],
+        borderRadius:6, borderSkipped:false }]
+    },
+    options:{ indexAxis:'y', responsive:true,
+      plugins:{ legend:{ display:false } },
+      scales:{ x:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' } },
+               y:{ grid:{ display:false } } } }
+  });
+
+  /* 13. Bar: distribuzione oraria richieste (8:00–18:00) */
+  new Chart(document.getElementById('chartOrario'), {
+    type: 'bar',
+    data: {
+      labels:['8:00','9:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'],
+      datasets:[{ label:'Richieste medie',
+        data:[0.5,1.8,2.4,2.1,0.8,0.4,1.9,2.3,1.6,0.9,0.3],
+        backgroundColor:blue, borderRadius:5, borderSkipped:false }]
+    },
+    options:{ responsive:true, plugins:{ legend:{ display:false } },
+      scales:{ x:{ grid:{ display:false } },
+               y:{ beginAtZero:true, grid:{ color:'rgba(0,0,0,.05)' } } } }
+  });
+
+  /* 14. Doughnut: efficienza al 1° intervento vs riaperture */
+  new Chart(document.getElementById('chartEfficienza'), {
+    type: 'doughnut',
+    data: {
+      labels:['Risolto al 1° intervento','Risolto al 2° intervento','3+ interventi'],
+      datasets:[{ data:[68,22,10],
+        backgroundColor:[green,blue,orange],
+        borderWidth:0, hoverOffset:6 }]
+    },
+    options:{ responsive:true, cutout:'65%',
+      plugins:{ legend:{ position:'bottom' } } }
+  });
+
+  /* 15. Bar: saturazione mensile tecnici (%) */
+  new Chart(document.getElementById('chartSaturazione'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets:[
+        { label:'M. Ferrari', data:[70,80,75,88,82,66], backgroundColor:accent, borderRadius:4 },
+        { label:'S. Galli',   data:[55,65,70,75,80,50], backgroundColor:teal,   borderRadius:4 },
+        { label:'L. Martini', data:[45,50,45,48,52,0],  backgroundColor:purple, borderRadius:4 }
+      ]
+    },
+    options:{ responsive:true, plugins:{ legend:{ position:'top' } },
+      scales:{ x:{ grid:{ display:false } },
+               y:{ beginAtZero:true, max:100, grid:{ color:'rgba(0,0,0,.05)' },
+                   ticks:{ callback:function(v){ return v+'%'; } } } } }
   });
 }
 
