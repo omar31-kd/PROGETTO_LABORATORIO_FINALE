@@ -1,7 +1,7 @@
 /**
  * @file main.c 
  * @brief Punto di ingresso del sistema di gestione del centro di assistenza.
- 
+ cacca
  */
 
 #include <stdio.h>
