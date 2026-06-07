@@ -209,38 +209,64 @@ static void sep_singolo(void) {
              "\xe2\x94\x80\n" RST);
 }
 
+static void svuota_buffer(void) {
+  int c;
+  while ((c = getchar()) != '\n' && c != EOF);
+}
+
 static void pausa(void) {
-  char buf[256];
   printf("\n" DIM "  Premi INVIO per continuare..." RST);
-  fgets(buf, 256, stdin);
+  svuota_buffer();
 }
 
 static int leggi_scelta(const char *prompt) {
   char buf[32];
+  int len;
   if (prompt)
     printf("%s", prompt);
-  if (fgets(buf, 32, stdin) == NULL)
+  if (fgets(buf, sizeof(buf), stdin) == NULL)
     return -1;
+  len = 0;
+  while (buf[len] != '\0') len++;
+  if (len > 0 && buf[len - 1] != '\n') {
+    svuota_buffer();
+  }
   if (buf[0] >= '0' && buf[0] <= '9')
     return (int)(buf[0] - '0');
   return -1;
 }
 
+static void trim_stringa(char *str) {
+  int i, start = 0, end = 0;
+  if (!str) return;
+  while (str[start] == ' ' || str[start] == '\t') start++;
+  while (str[end] != '\0') end++;
+  end--;
+  while (end >= start && (str[end] == ' ' || str[end] == '\t' || str[end] == '\n' || str[end] == '\r')) {
+    str[end] = '\0';
+    end--;
+  }
+  if (start > 0) {
+    for (i = 0; i <= end - start + 1; i++) {
+      str[i] = str[start + i];
+    }
+  }
+}
+
 static void leggi_stringa(char *dst, int max, const char *prompt) {
-  int i;
-  if (!dst || max <= 0)
-    return;
-  if (prompt)
-    printf("%s", prompt);
+  int len;
+  if (!dst || max <= 0) return;
+  if (prompt) printf("%s", prompt);
   if (fgets(dst, max, stdin) == NULL) {
     dst[0] = '\0';
     return;
   }
-  for (i = 0; dst[i]; i++)
-    if (dst[i] == '\n' || dst[i] == '\r') {
-      dst[i] = '\0';
-      return;
-    }
+  len = 0;
+  while (dst[len] != '\0') len++;
+  if (len > 0 && dst[len - 1] != '\n') {
+    svuota_buffer();
+  }
+  trim_stringa(dst);
 }
 
 static int parse_int(const char *s) {
@@ -284,7 +310,7 @@ static void dealloca_tutto(Richiesta **r, int nr, Tecnico **t, int nt) {
 /**
  * @brief Verifica che il nome contenga solo lettere, spazi, apostrofi e
  *        trattini. Accetta anche lettere accentate (byte >= 0xC0 UTF-8).
- *        Lunghezza minima: 2 caratteri.
+ *        Previene spazi/apostrofi/trattini consecutivi. Lunghezza minima: 2.
  * @return 1 se valido, 0 altrimenti.
  */
 static int valida_nome(const char *s) {
@@ -295,6 +321,7 @@ static int valida_nome(const char *s) {
     unsigned char c = (unsigned char)s[i];
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == ' ' ||
         c == '\'' || c == '-' || c >= 0xC0) {
+      if (i > 0 && (c == ' ' || c == '\'' || c == '-') && s[i-1] == c) return 0;
       len++;
     } else {
       return 0;
@@ -326,6 +353,7 @@ static int valida_codice(const char *s) {
 /**
  * @brief Verifica che la stringa non sia vuota, abbia almeno min_len
  *        caratteri, e contenga almeno una lettera (non può essere solo numeri o punteggiatura).
+ *        Inoltre blocca '<', '>' e caratteri di controllo per prevenire XSS.
  * @return 1 se valido, 0 altrimenti.
  */
 static int valida_testo(const char *s, int min_len) {
@@ -334,6 +362,7 @@ static int valida_testo(const char *s, int min_len) {
     return 0;
   for (i = 0; s[i] != '\0'; i++) {
     unsigned char c = (unsigned char)s[i];
+    if (c == '<' || c == '>' || c < 32) return 0;
     len++;
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c >= 0xC0) {
       lettere++;
@@ -344,7 +373,7 @@ static int valida_testo(const char *s, int min_len) {
 
 /**
  * @brief Verifica che la specializzazione contenga solo lettere, spazi,
- *        trattini e lettere accentate. Min 2 caratteri.
+ *        trattini e lettere accentate. Previene spazi/trattini doppi. Min 2 char.
  * @return 1 se valido, 0 altrimenti.
  */
 static int valida_specializzazione(const char *s) {
@@ -355,6 +384,7 @@ static int valida_specializzazione(const char *s) {
     unsigned char c = (unsigned char)s[i];
     if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == ' ' ||
         c == '-' || c >= 0xC0) {
+      if (i > 0 && (c == ' ' || c == '-') && s[i-1] == c) return 0;
       len++;
     } else {
       return 0;
