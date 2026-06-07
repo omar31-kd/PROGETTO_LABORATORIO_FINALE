@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Assistenza Tecnica — Dashboard</title>
+<style>
+:root{
+  --bg:#f5f5f7;--panel:#fff;--panel-2:#fbfbfd;--sidebar:#fff;
+  --ink:#1d1d1f;--ink-2:#6e6e73;--ink-3:#8e8e93;
+  --hair:rgba(0,0,0,.08);--hair-2:rgba(0,0,0,.06);
+  --accent:#1f3a5f;--accent-press:#172c47;
+  --accent-soft:#eef2f8;--accent-ink:#1f3a5f;--blue:#0a84ff;
+  --green:#34c759;--green-bg:#e9f8ee;--green-ink:#1a7f37;
+  --orange:#ff9f0a;--orange-bg:#fff4e2;--orange-ink:#b46a00;
+  --red:#ff3b30;--red-bg:#ffeceb;--red-ink:#c0392b;
+  --purple:#af52de;--purple-bg:#f3eeff;--purple-ink:#6e23cf;
+  --r-card:18px;--r-sm:12px;--r-ctrl:9px;--r-pill:980px;
+  --sh-1:0 1px 2px rgba(0,0,0,.04),0 1px 1px rgba(0,0,0,.03);
+  --sh-2:0 1px 3px rgba(0,0,0,.05),0 12px 28px -14px rgba(0,0,0,.16);
+  --gap:20px;--pad:22px;--side-w:236px;--head-h:60px;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);
+  -webkit-font-smoothing:antialiased;font-size:15px;letter-spacing:-.01em}
+button,input{font-family:inherit} a{text-decoration:none;color:inherit}
+.ic{width:20px;height:20px;stroke:currentColor;fill:none;
+  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.ic-16{width:16px;height:16px}.ic-18{width:18px;height:18px}
+.topbar{position:sticky;top:0;z-index:30;height:var(--head-h);
+  display:flex;align-items:center;gap:18px;padding:0 22px;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid var(--hair)}
+.brand{display:flex;align-items:center;gap:11px;flex:none}
+.brand .mark{width:30px;height:30px;border-radius:8px;flex:none;
+  background:linear-gradient(160deg,var(--accent),var(--accent-press));
+  color:#fff;display:grid;place-items:center;box-shadow:var(--sh-1)}
+.brand .mark svg{width:17px;height:17px}
+.brand .name{font-size:15px;font-weight:600;letter-spacing:-.02em;white-space:nowrap}
+.brand .name span{color:var(--ink-3);font-weight:500}
+.head-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.search{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;
+  background:#f0f0f2;border-radius:9px;color:var(--ink-3);min-width:200px;
+  border:1px solid transparent;transition:all .15s}
+.search:focus-within{background:#fff;border-color:var(--hair)}
+.search input{border:0;background:transparent;outline:0;font-size:13.5px;
+  color:var(--ink);width:100%}
+.search input::placeholder{color:var(--ink-3)}
+.datechip{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.iconbtn{width:34px;height:34px;border-radius:9px;border:1px solid transparent;
+  background:transparent;color:var(--ink-2);display:grid;place-items:center;
+  cursor:pointer;position:relative}
+.iconbtn:hover{background:#f0f0f2}
+.iconbtn .ping{position:absolute;top:7px;right:8px;width:7px;height:7px;
+  border-radius:50%;background:var(--red);border:1.5px solid #fff}
+.avatar-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--hair);
+  background:linear-gradient(160deg,#e8edf5,#d7e0ee);color:var(--accent);
+  display:grid;place-items:center;font-size:12px;font-weight:700;cursor:pointer}
+.app-body{display:grid;grid-template-columns:var(--side-w) 1fr;align-items:start}
+.sidebar{position:sticky;top:var(--head-h);align-self:start;
+  height:calc(100vh - var(--head-h));
+  background:var(--sidebar);border-right:1px solid var(--hair);
+  padding:16px 12px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+.nav-sec{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ink-3);margin:16px 10px 6px}.nav-sec:first-child{margin-top:2px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:8px 10px;border-radius:8px;
+  color:var(--ink);font-size:14px;font-weight:450;cursor:pointer;transition:background .12s}
+.nav-item .ic{width:18px;height:18px;color:var(--ink-2)}
+.nav-item:hover{background:#f3f3f5}
+.nav-item.active{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+.nav-item.active .ic{color:var(--accent)}
+.nav-item .badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;
+  border-radius:var(--r-pill);background:var(--red);color:#fff;
+  font-size:11.5px;font-weight:600;display:grid;place-items:center}
+.side-foot{margin-top:auto;padding:12px 10px 4px;border-top:1px solid var(--hair-2)}
+.side-foot .who{display:flex;align-items:center;gap:10px;padding-top:10px}
+.side-foot .who .av{width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(160deg,#e8edf5,#d7e0ee);color:var(--accent);
+  display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+.side-foot .who b{font-size:13.5px;font-weight:600;display:block}
+.side-foot .who small{font-size:12px;color:var(--ink-3)}
+.main{padding:24px 26px 60px;display:flex;flex-direction:column;gap:var(--gap);min-width:0}
+.page-head{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.page-head h1{font-size:26px;font-weight:600;letter-spacing:-.03em}
+.page-head .sub{color:var(--ink-2);font-size:14px;margin-bottom:3px}
+.page-head .spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  font-size:13.5px;font-weight:600;padding:8px 14px;border-radius:var(--r-ctrl);
+  border:1px solid var(--hair);background:#fff;color:var(--ink);
+  box-shadow:var(--sh-1);transition:all .12s}
+.btn:hover{background:#fafafa}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.card{background:var(--panel);border:1px solid var(--hair-2);
+  border-radius:var(--r-card);box-shadow:var(--sh-2);padding:var(--pad)}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.card-head h2{font-size:16px;font-weight:600;letter-spacing:-.02em}
+.card-head .meta{color:var(--ink-3);font-size:13px;font-weight:450}
+.card-head .spacer{flex:1}
+.card-head .link{color:var(--blue);font-size:13px;font-weight:500}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap)}
+.kpi{background:var(--panel);border:1px solid var(--hair-2);
+  border-radius:var(--r-card);box-shadow:var(--sh-2);
+  padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+.kpi .top{display:flex;align-items:center;gap:9px;color:var(--ink-2);font-size:13.5px;font-weight:500}
+.kpi .top .ico{width:30px;height:30px;border-radius:9px;
+  display:grid;place-items:center;flex:none;
+  background:var(--accent-soft);color:var(--accent)}
+.kpi.warn .top .ico{background:var(--orange-bg);color:var(--orange-ink)}
+.kpi.danger .top .ico{background:var(--red-bg);color:var(--red-ink)}
+.kpi.ok .top .ico{background:var(--green-bg);color:var(--green-ink)}
+.kpi .num{font-size:36px;font-weight:600;letter-spacing:-.04em;line-height:1;
+  font-variant-numeric:tabular-nums}
+.kpi .foot{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-3)}
+.kpi .foot .warnt{color:var(--orange-ink);font-weight:600}
+.kpi .foot .ok{color:var(--green-ink);font-weight:600}
+.kpi .foot .acc{color:var(--accent-ink);font-weight:600}
+.mid{display:grid;grid-template-columns:1.5fr 1fr;gap:var(--gap);align-items:start}
+.urg-list{display:flex;flex-direction:column;gap:10px}
+.urg{display:flex;align-items:center;gap:14px;padding:14px 16px;
+  border:1px solid var(--hair-2);border-radius:var(--r-sm);
+  background:var(--panel-2);transition:background .12s}
+.urg:hover{background:#fff;box-shadow:var(--sh-1)}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;
+  font-weight:600;letter-spacing:.01em;padding:4px 9px;
+  border-radius:var(--r-pill);white-space:nowrap}
+.tag.urgent{background:var(--red-bg);color:var(--red-ink)}
+.tag.high{background:var(--orange-bg);color:var(--orange-ink)}
+.tag.dot::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.urg .desc{flex:1;min-width:0;font-size:14.5px;font-weight:500}
+.urg .desc small{display:block;color:var(--ink-3);font-size:12.5px;font-weight:400;margin-top:2px}
+.s-pill{display:inline-flex;align-items:center;gap:5px;
+  font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:var(--r-pill)}
+.s-pill .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.s-aperta{background:var(--red-bg);color:var(--red-ink)}
+.s-assegnata{background:var(--purple-bg);color:var(--purple-ink)}
+.s-incorso{background:var(--orange-bg);color:var(--orange-ink)}
+.s-sospesa{background:#f3f3f5;color:var(--ink-3)}
+.s-chiusa{background:var(--green-bg);color:var(--green-ink)}
+.s-annullata{background:#f3f3f5;color:var(--ink-3)}
+.p-urgente{background:var(--red-bg);color:var(--red-ink)}
+.p-alta{background:var(--orange-bg);color:var(--orange-ink)}
+.p-media{background:#f0f5ff;color:#0050d0}
+.p-bassa{background:var(--green-bg);color:var(--green-ink)}
+.donut-wrap{display:flex;align-items:center;gap:20px}
+.donut{width:128px;height:128px;flex:none;position:relative}
+.donut svg{transform:rotate(-90deg)}
+.donut .ctr{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.donut .ctr b{font-size:24px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.donut .ctr small{font-size:11.5px;color:var(--ink-3);display:block;margin-top:1px}
+.legend{display:flex;flex-direction:column;gap:11px;flex:1}
+.legend .row{display:flex;align-items:center;gap:10px;font-size:13.5px}
+.legend .sw{width:11px;height:11px;border-radius:4px;flex:none}
+.legend .row b{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums}
+.legend .row .cnt{color:var(--ink-3);font-size:12.5px;font-variant-numeric:tabular-nums}
+.divider{height:1px;background:var(--hair-2);margin:18px 0}
+.bars{display:flex;flex-direction:column;gap:13px}
+.bar{display:grid;grid-template-columns:90px 1fr 38px;align-items:center;gap:12px}
+.bar .lbl{font-size:13px;color:var(--ink-2)}
+.bar .track{height:8px;border-radius:var(--r-pill);background:#ececef;overflow:hidden}
+.bar .track>span{display:block;height:100%;border-radius:var(--r-pill);transition:width .6s}
+.bar .pct{font-size:13px;font-weight:600;text-align:right;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.fill-green{background:var(--green)}.fill-accent{background:var(--accent)}
+.fill-orange{background:var(--orange)}.fill-red{background:var(--red)}
+.tbl-card{padding:0;overflow:hidden}
+.tbl-card .card-head{padding:20px 22px 14px;margin:0}
+.tbl{width:100%;border-collapse:collapse}
+.tbl thead th{text-align:left;font-size:11.5px;font-weight:600;
+  letter-spacing:.03em;text-transform:uppercase;color:var(--ink-3);
+  padding:10px 18px;border-top:1px solid var(--hair-2);
+  border-bottom:1px solid var(--hair-2);background:var(--panel-2)}
+.tbl tbody td{padding:13px 18px;border-bottom:1px solid var(--hair-2);
+  font-size:14px;vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl tbody tr:hover td{background:var(--panel-2)}
+.tbl .id{font-weight:700;color:var(--accent);
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px}
+.tbl .nm{font-weight:500}.tbl .device{color:var(--ink-2);font-size:13px}
+.cellrow{display:flex;align-items:center;gap:10px}
+.av-sm{width:30px;height:30px;border-radius:50%;flex:none;
+  display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff}
+.prog{display:flex;align-items:center;gap:9px}
+.prog .track{width:80px;height:6px;border-radius:var(--r-pill);
+  background:#ececef;overflow:hidden}
+.prog .track>span{display:block;height:100%;border-radius:var(--r-pill)}
+.prog .v{font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;min-width:30px}
+.tbl .cost{font-variant-numeric:tabular-nums;font-weight:600}
+.tbl .cost.ok{color:var(--green-ink)}.tbl .cost.dash{color:var(--ink-3)}
+.tbl .dt{color:var(--ink-3);font-variant-numeric:tabular-nums;font-size:13px}
+.c-navy{background:linear-gradient(160deg,#2c4f7c,#1f3a5f)}
+.c-teal{background:linear-gradient(160deg,#2aa6a0,#1c7d78)}
+.c-violet{background:linear-gradient(160deg,#7b6cf0,#5a48d6)}
+.c-amber{background:linear-gradient(160deg,#e8943a,#c9761f)}
+.c-rose{background:linear-gradient(160deg,#e7728a,#c94f6b)}
+.c-slate{background:linear-gradient(160deg,#6b7689,#4b5566)}
+.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+@media(max-width:1180px){.kpis{grid-template-columns:repeat(2,1fr)}
+  .mid{grid-template-columns:1fr}.bottom-grid{grid-template-columns:1fr}}
+@media(max-width:860px){.app-body{grid-template-columns:1fr}.sidebar{display:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-bars" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 14 4 6"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-euro" viewBox="0 0 24 24"><path d="M4 10h12M4 14h12"/><path d="M19.5 9a6.5 6.5 0 1 0 0 6"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></symbol>
+</svg>
+<header class="topbar">
+  <div class="brand">
+    <span class="mark"><svg viewBox="0 0 24 24" class="ic"><use href="#i-wrench"/></svg></span>
+    <span class="name">Assistenza Tecnica <span>&#xB7; Dashboard</span></span>
+  </div>
+  <div class="head-right">
+    <label class="search">
+      <svg class="ic ic-16"><use href="#i-search"/></svg>
+      <input type="text" placeholder="Cerca interventi, tecnici…" id="searchInput" oninput="filterTable()">
+    </label>
+    <span class="datechip">06/06/2026 &middot; 13:56</span>
+    <button class="iconbtn" aria-label="Notifiche"><svg class="ic"><use href="#i-bell"/></svg><span class="ping"></span></button>
+    <button class="avatar-btn">CA</button>
+  </div>
+</header>
+<div class="app-body">
+<aside class="sidebar">
+  <div class="nav-sec">Operazioni</div>
+  <a class="nav-item active"><svg class="ic"><use href="#i-grid"/></svg>Dashboard</a>
+  <a class="nav-item"><svg class="ic"><use href="#i-wrench"/></svg>Richieste<span class="badge">5</span></a>
+  <a class="nav-item"><svg class="ic"><use href="#i-users"/></svg>Tecnici</a>
+  <div class="nav-sec">Report</div>
+  <a class="nav-item"><svg class="ic"><use href="#i-bars"/></svg>Statistiche</a>
+  <a class="nav-item"><svg class="ic"><use href="#i-gauge"/></svg>Report SLA</a>
+  <a class="nav-item"><svg class="ic"><use href="#i-download"/></svg>Esportazioni</a>
+  <div class="nav-sec">Sistema</div>
+  <a class="nav-item"><svg class="ic"><use href="#i-gear"/></svg>Impostazioni</a>
+  <div class="side-foot"><div class="who"><span class="av">CA</span><div><b>Centro Assistenza</b><small>Sistema v1.0</small></div></div></div>
+</aside>
+<main class="main">
+<div class="page-head">
+  <div><h1>Dashboard Operativa</h1>
+  <div class="sub">Generata il 06/06/2026 alle 13:56</div></div>
+  <span class="spacer"></span>
+  <button class="btn" onclick="window.print()"><svg class="ic ic-16"><use href="#i-download"/></svg>Stampa</button>
+</div>
+<section class="kpis">
+  <div class="kpi"><div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-wrench"/></svg></span>Richieste totali</div>
+  <div class="num">5</div>
+  <div class="foot"><span class="acc">4 attive</span> &middot; 1 chiuse</div></div>
+  <div class="kpi"><div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-users"/></svg></span>Tecnici</div>
+  <div class="num">3</div>
+  <div class="foot"><span class="acc">2 occupati</span> &middot; 1 liberi</div></div>
+  <div class="kpi warn"><div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-alert"/></svg></span>Non assegnate</div>
+  <div class="num">1</div>
+  <div class="foot"><span class="warnt">da smistare subito</span></div></div>
+  <div class="kpi ok"><div class="top"><span class="ico"><svg class="ic ic-16"><use href="#i-euro"/></svg></span>Costo finale</div>
+  <div class="num">&euro; 45</div>
+  <div class="foot"><span class="ok">su &euro; 600 stimati</span></div></div>
+</section>
+<section class="mid">
+<div class="card">
+  <div class="card-head"><h2>Urgenze &amp; non assegnati</h2><span class="meta">priorit&agrave; alta / aperte</span><span class="spacer"></span></div>
+  <div class="urg-list">
+    <div class="urg"><span class="tag urgent dot">URGENTE</span>
+      <div class="desc">R003 &mdash; Giuseppe Verdi<small>PC Desktop Lenovo ThinkCentre &middot; 26/05/2024</small></div>
+      <span class="s-pill s-aperta"><span class="dot"></span>Aperta</span></div>
+    <div class="urg"><span class="tag high dot">ALTA</span>
+      <div class="desc">R001 &mdash; Mario Rossi<small>Laptop HP EliteBook 840 &middot; 25/05/2024</small></div>
+      <span class="s-pill s-incorso"><span class="dot"></span>In Corso</span></div>
+    <div class="urg"><span class="tag high dot">ALTA</span>
+      <div class="desc">R005 &mdash; Carlo Ricci<small>Tablet Apple iPad Pro 11 &middot; 27/05/2024</small></div>
+      <span class="s-pill s-assegnata"><span class="dot"></span>Assegnata</span></div>
+  </div>
+  <div class="divider"></div>
+  <div class="card-head" style="margin-bottom:14px"><h2>Carico tecnici</h2><span class="meta">slot occupati</span></div>
+  <div class="bars">
+    <div class="bar"><span class="lbl" style="font-size:12.5px;font-weight:500;color:var(--ink)">Marco Ferrari</span><span class="track"><span class="fill-orange" style="width:66%"></span></span><span class="pct">2/3</span></div>
+    <div class="bar"><span class="lbl" style="font-size:12.5px;font-weight:500;color:var(--ink)">Sofia Galli</span><span class="track"><span class="fill-accent" style="width:50%"></span></span><span class="pct">1/2</span></div>
+    <div class="bar"><span class="lbl" style="font-size:12.5px;font-weight:500;color:var(--ink)">Luca Martini</span><span class="track"><span class="fill-green" style="width:0%"></span></span><span class="pct">0/4</span></div>
+  </div>
+</div>
+<div style="display:flex;flex-direction:column;gap:var(--gap)">
+<div class="card">
+  <div class="card-head"><h2>Riepilogo richieste</h2><span class="spacer"></span><span class="meta">per stato</span></div>
+  <div class="donut-wrap">
+    <div class="donut">
+      <svg viewBox="0 0 120 120" width="128" height="128">
+        <circle cx="60" cy="60" r="42" fill="none" stroke="#ececef" stroke-width="16"/>
+        <circle cx="60" cy="60" r="42" fill="none" stroke="#af52de" stroke-width="16" stroke-dasharray="105.56 158.34" stroke-dashoffset="-0.00" stroke-linecap="round"/>
+        <circle cx="60" cy="60" r="42" fill="none" stroke="#ff9f0a" stroke-width="16" stroke-dasharray="52.78 211.12" stroke-dashoffset="-105.56" stroke-linecap="round"/>
+        <circle cx="60" cy="60" r="42" fill="none" stroke="#ff3b30" stroke-width="16" stroke-dasharray="52.78 211.12" stroke-dashoffset="-158.34" stroke-linecap="round"/>
+        <circle cx="60" cy="60" r="42" fill="none" stroke="#34c759" stroke-width="16" stroke-dasharray="52.78 211.12" stroke-dashoffset="-211.12" stroke-linecap="round"/>
+      </svg>
+      <div class="ctr"><b>5</b><small>totali</small></div>
+    </div>
+    <div class="legend">
+      <div class="row"><span class="sw" style="background:#af52de"></span>Assegnate<span class="cnt">40%</span><b>2</b></div>
+      <div class="row"><span class="sw" style="background:#ff9f0a"></span>In Corso<span class="cnt">20%</span><b>1</b></div>
+      <div class="row"><span class="sw" style="background:#ff3b30"></span>Aperte<span class="cnt">20%</span><b>1</b></div>
+      <div class="row"><span class="sw" style="background:#34c759"></span>Chiuse<span class="cnt">20%</span><b>1</b></div>
+      <div class="row"><span class="sw" style="background:#ececef"></span>Sosp./Ann.<span class="cnt">0%</span><b>0</b></div>
+    </div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-head"><h2>Distribuzione priorit&agrave;</h2></div>
+  <div class="bars">
+    <div class="bar"><span class="lbl" style="color:var(--red-ink);font-weight:600">Urgente</span><span class="track"><span class="fill-red" style="width:20%"></span></span><span class="pct">1</span></div>
+    <div class="bar"><span class="lbl" style="color:var(--orange-ink);font-weight:600">Alta</span><span class="track"><span class="fill-orange" style="width:40%"></span></span><span class="pct">2</span></div>
+    <div class="bar"><span class="lbl" style="color:#0050d0;font-weight:600">Media</span><span class="track"><span class="fill-accent" style="width:20%"></span></span><span class="pct">1</span></div>
+    <div class="bar"><span class="lbl" style="color:var(--green-ink);font-weight:600">Bassa</span><span class="track"><span class="fill-green" style="width:20%"></span></span><span class="pct">1</span></div>
+  </div>
+</div>
+</div>
+</section>
+<section class="card tbl-card">
+  <div class="card-head"><h2>Elenco Richieste</h2><span class="meta">5 interventi</span><span class="spacer"></span></div>
+  <table class="tbl" id="richiesteTable">
+  <thead><tr><th>#</th><th>Codice</th><th>Cliente</th><th>Dispositivo</th><th>Priorit&agrave;</th><th>Stato</th><th>Stim.</th><th>Fin.</th><th>Data</th></tr></thead>
+  <tbody>
+  <tr>
+    <td class="dt">1</td>
+    <td class="id">R001</td>
+    <td class="nm">Mario Rossi</td>
+    <td class="device">Laptop HP EliteBook 840</td>
+    <td><span class="s-pill p-alta"><span class="dot"></span>Alta</span></td>
+    <td><span class="s-pill s-incorso"><span class="dot"></span>In Corso</span></td>
+    <td class="cost">&euro; 150.00</td>
+    <td class="cost dash">&mdash;</td>
+    <td class="dt">25/05/2024</td>
+  </tr>
+  <tr>
+    <td class="dt">2</td>
+    <td class="id">R002</td>
+    <td class="nm">Laura Bianchi</td>
+    <td class="device">Smartphone Samsung Galaxy S21</td>
+    <td><span class="s-pill p-media"><span class="dot"></span>Media</span></td>
+    <td><span class="s-pill s-assegnata"><span class="dot"></span>Assegnata</span></td>
+    <td class="cost">&euro; 80.00</td>
+    <td class="cost dash">&mdash;</td>
+    <td class="dt">24/05/2024</td>
+  </tr>
+  <tr>
+    <td class="dt">3</td>
+    <td class="id">R003</td>
+    <td class="nm">Giuseppe Verdi</td>
+    <td class="device">PC Desktop Lenovo ThinkCentre</td>
+    <td><span class="s-pill p-urgente"><span class="dot"></span>Urgente</span></td>
+    <td><span class="s-pill s-aperta"><span class="dot"></span>Aperta</span></td>
+    <td class="cost">&euro; 200.00</td>
+    <td class="cost dash">&mdash;</td>
+    <td class="dt">26/05/2024</td>
+  </tr>
+  <tr>
+    <td class="dt">4</td>
+    <td class="id">R004</td>
+    <td class="nm">Anna Neri</td>
+    <td class="device">Stampante Epson EcoTank ET-2850</td>
+    <td><span class="s-pill p-bassa"><span class="dot"></span>Bassa</span></td>
+    <td><span class="s-pill s-chiusa"><span class="dot"></span>Chiusa</span></td>
+    <td class="cost">&euro; 50.00</td>
+    <td class="cost ok">&euro; 45.00</td>
+    <td class="dt">14/05/2024</td>
+  </tr>
+  <tr>
+    <td class="dt">5</td>
+    <td class="id">R005</td>
+    <td class="nm">Carlo Ricci</td>
+    <td class="device">Tablet Apple iPad Pro 11</td>
+    <td><span class="s-pill p-alta"><span class="dot"></span>Alta</span></td>
+    <td><span class="s-pill s-assegnata"><span class="dot"></span>Assegnata</span></td>
+    <td class="cost">&euro; 120.00</td>
+    <td class="cost dash">&mdash;</td>
+    <td class="dt">27/05/2024</td>
+  </tr>
+  </tbody>
+  </table>
+</section>
+<section class="card tbl-card">
+  <div class="card-head"><h2>Elenco Tecnici</h2><span class="meta">3 in organico</span><span class="spacer"></span></div>
+  <table class="tbl">
+  <thead><tr><th>Codice</th><th>Tecnico</th><th>Specializzazione</th><th>Carico</th><th>Avanzamento</th><th>Richieste</th></tr></thead>
+  <tbody>
+  <tr>
+    <td class="id">T001</td>
+    <td><div class="cellrow"><span class="av-sm c-navy">MF</span><span class="nm">Marco Ferrari</span></div></td>
+    <td class="device">Hardware e Componentistica</td>
+    <td class="dt" style="font-weight:600;color:var(--orange-ink)">2 / 3 slot</td>
+    <td><div class="prog"><span class="track"><span style="width:66%;background:var(--orange)"></span></span><span class="v">66%</span></div></td>
+    <td><span class="id" style="font-size:12.5px">R001, R002</span></td>
+  </tr>
+  <tr>
+    <td class="id">T002</td>
+    <td><div class="cellrow"><span class="av-sm c-teal">SG</span><span class="nm">Sofia Galli</span></div></td>
+    <td class="device">Software e Sistemi Operativi</td>
+    <td class="dt" style="font-weight:600;color:var(--green-ink)">1 / 2 slot</td>
+    <td><div class="prog"><span class="track"><span style="width:50%;background:var(--green)"></span></span><span class="v">50%</span></div></td>
+    <td><span class="id" style="font-size:12.5px">R005</span></td>
+  </tr>
+  <tr>
+    <td class="id">T003</td>
+    <td><div class="cellrow"><span class="av-sm c-violet">LM</span><span class="nm">Luca Martini</span></div></td>
+    <td class="device">Stampanti e Periferiche</td>
+    <td class="dt" style="font-weight:600;color:var(--green-ink)">0 / 4 slot</td>
+    <td><div class="prog"><span class="track"><span style="width:0%;background:var(--green)"></span></span><span class="v">0%</span></div></td>
+    <td><span class="dt">&mdash;</span></td>
+  </tr>
+  </tbody>
+  </table>
+</section>
+</main>
+</div>
+<script>
+function filterTable(){
+  var q=document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#richiesteTable tbody tr').forEach(function(row){
+    row.style.display=row.textContent.toLowerCase().includes(q)?'':'none';
+  });
+}
+document.querySelectorAll('.nav-item').forEach(function(item){
+  item.addEventListener('click',function(){
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+    item.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
