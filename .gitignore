@@ -1,3 +1,4 @@
 *.o
 centro_assistenza
 .DS_Store
+*.exe
