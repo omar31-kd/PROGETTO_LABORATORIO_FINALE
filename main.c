@@ -29,6 +29,14 @@ static int parse_int(const char *s);
 static double parse_double(const char *s);
 static void dealloca_tutto(Richiesta **r, int nr, Tecnico **t, int nt);
 
+/* Funzioni di validazione input */
+static int valida_nome(const char *s);
+static int valida_codice(const char *s);
+static int valida_testo(const char *s, int min_len);
+static int valida_specializzazione(const char *s);
+static int e_numero_valido(const char *s);
+static int valida_intero_range(const char *s, int min, int max);
+
 static void schermo_iniziale(void);
 static void titolo_menu_principale(void);
 static void titolo_richieste(void);
@@ -270,6 +278,131 @@ static void dealloca_tutto(Richiesta **r, int nr, Tecnico **t, int nt) {
 }
 
 /* =========================================================================
+ * Funzioni di validazione input
+ * ========================================================================= */
+
+/**
+ * @brief Verifica che il nome contenga solo lettere, spazi, apostrofi e
+ *        trattini. Accetta anche lettere accentate (byte >= 0xC0 UTF-8).
+ *        Lunghezza minima: 2 caratteri.
+ * @return 1 se valido, 0 altrimenti.
+ */
+static int valida_nome(const char *s) {
+  int i, len = 0;
+  if (s == NULL)
+    return 0;
+  for (i = 0; s[i] != '\0'; i++) {
+    unsigned char c = (unsigned char)s[i];
+    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == ' ' ||
+        c == '\'' || c == '-' || c >= 0xC0) {
+      len++;
+    } else {
+      return 0;
+    }
+  }
+  return (len >= 2) ? 1 : 0;
+}
+
+/**
+ * @brief Verifica che il codice contenga solo caratteri alfanumerici
+ *        (lettere e cifre), trattini bassi e trattini. No spazi.
+ *        Lunghezza minima: 1 carattere.
+ * @return 1 se valido, 0 altrimenti.
+ */
+static int valida_codice(const char *s) {
+  int i;
+  if (s == NULL || s[0] == '\0')
+    return 0;
+  for (i = 0; s[i] != '\0'; i++) {
+    char c = s[i];
+    if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+          (c >= '0' && c <= '9') || c == '_' || c == '-')) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+/**
+ * @brief Verifica che la stringa non sia vuota, abbia almeno min_len
+ *        caratteri, e contenga almeno una lettera (non può essere solo numeri o punteggiatura).
+ * @return 1 se valido, 0 altrimenti.
+ */
+static int valida_testo(const char *s, int min_len) {
+  int i, len = 0, lettere = 0;
+  if (s == NULL)
+    return 0;
+  for (i = 0; s[i] != '\0'; i++) {
+    unsigned char c = (unsigned char)s[i];
+    len++;
+    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c >= 0xC0) {
+      lettere++;
+    }
+  }
+  return (len >= min_len && lettere > 0) ? 1 : 0;
+}
+
+/**
+ * @brief Verifica che la specializzazione contenga solo lettere, spazi,
+ *        trattini e lettere accentate. Min 2 caratteri.
+ * @return 1 se valido, 0 altrimenti.
+ */
+static int valida_specializzazione(const char *s) {
+  int i, len = 0;
+  if (s == NULL)
+    return 0;
+  for (i = 0; s[i] != '\0'; i++) {
+    unsigned char c = (unsigned char)s[i];
+    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == ' ' ||
+        c == '-' || c >= 0xC0) {
+      len++;
+    } else {
+      return 0;
+    }
+  }
+  return (len >= 2) ? 1 : 0;
+}
+
+/**
+ * @brief Verifica che la stringa rappresenti un numero valido >= 0.
+ *        Accetta interi e decimali (con . o ,). Non accetta stringhe vuote.
+ * @return 1 se valido, 0 altrimenti.
+ */
+static int e_numero_valido(const char *s) {
+  int i = 0, ha_cifra = 0, ha_punto = 0;
+  if (s == NULL || s[0] == '\0')
+    return 0;
+  for (; s[i] != '\0'; i++) {
+    if (s[i] >= '0' && s[i] <= '9') {
+      ha_cifra = 1;
+    } else if ((s[i] == '.' || s[i] == ',') && !ha_punto) {
+      ha_punto = 1;
+    } else {
+      return 0;
+    }
+  }
+  return ha_cifra;
+}
+
+/**
+ * @brief Verifica che la stringa rappresenti un intero nel range [min, max].
+ * @return 1 se valido, 0 altrimenti.
+ */
+static int valida_intero_range(const char *s, int min, int max) {
+  int v = 0, i;
+  if (s == NULL || s[0] == '\0')
+    return 0;
+  for (i = 0; s[i] != '\0'; i++) {
+    if (s[i] < '0' || s[i] > '9')
+      return 0;
+    v = v * 10 + (s[i] - '0');
+    if (v > max)
+      return 0;
+  }
+  return (v >= min && v <= max) ? 1 : 0;
+}
+
+/* =========================================================================
  * Schermata iniziale
  * ========================================================================= */
 
@@ -454,20 +587,55 @@ static void menu_richieste(Richiesta **r, int *nr, int max_r) {
         break;
       }
       printf("\n");
-      leggi_stringa(codice, MAX_CODICE, BCYN "  Codice richiesta    : " RST);
-      leggi_stringa(cliente, MAX_CLIENTE, BCYN "  Nome cliente        : " RST);
-      leggi_stringa(dispositivo, MAX_DISPOSITIVO,
-                    BCYN "  Dispositivo         : " RST);
-      leggi_stringa(problema, MAX_PROBLEMA,
-                    BCYN "  Descrizione problema: " RST);
+      /* Codice richiesta */
+      do {
+        leggi_stringa(codice, MAX_CODICE, BCYN "  Codice richiesta    : " RST);
+        if (!valida_codice(codice))
+          printf(BRED "  [!] " RST "Codice non valido: usa solo lettere, "
+                 "numeri, trattini. No spazi.\n");
+      } while (!valida_codice(codice));
+      /* Nome cliente */
+      do {
+        leggi_stringa(cliente, MAX_CLIENTE,
+                      BCYN "  Nome cliente        : " RST);
+        if (!valida_nome(cliente))
+          printf(BRED "  [!] " RST "Nome non valido: usa solo lettere, "
+                 "spazi e apostrofi. Min 2 caratteri. No numeri.\n");
+      } while (!valida_nome(cliente));
+      /* Dispositivo */
+      do {
+        leggi_stringa(dispositivo, MAX_DISPOSITIVO,
+                      BCYN "  Dispositivo         : " RST);
+        if (!valida_testo(dispositivo, 2))
+          printf(BRED "  [!] " RST "Dispositivo non valido: "
+                 "inserire almeno 2 caratteri (non solo numeri).\n");
+      } while (!valida_testo(dispositivo, 2));
+      /* Descrizione problema */
+      do {
+        leggi_stringa(problema, MAX_PROBLEMA,
+                      BCYN "  Descrizione problema: " RST);
+        if (!valida_testo(problema, 5))
+          printf(BRED "  [!] " RST "Descrizione non valida: "
+                 "inserire almeno 5 caratteri (non solo numeri).\n");
+      } while (!valida_testo(problema, 5));
+      /* Priorita' */
       printf(BCYN "  Priorita'"
                   " (" BYEL "0" BCYN "=Bassa  " BYEL "1" BCYN "=Media  " BYEL
                   "2" BCYN "=Alta  " BYEL "3" BCYN "=Urgente" BCYN ")\n" RST);
-      leggi_stringa(buf, BUF, BCYN "  Scelta            : " RST);
+      do {
+        leggi_stringa(buf, BUF, BCYN "  Scelta              : " RST);
+        if (!valida_intero_range(buf, 0, 3))
+          printf(BRED "  [!] " RST "Valore non valido: "
+                 "inserire un numero da 0 a 3.\n");
+      } while (!valida_intero_range(buf, 0, 3));
       priorita_i = parse_int(buf);
-      if (priorita_i < 0 || priorita_i > 3)
-        priorita_i = 0;
-      leggi_stringa(buf, BUF, BCYN "  Costo stimato EUR : " RST);
+      /* Costo stimato */
+      do {
+        leggi_stringa(buf, BUF, BCYN "  Costo stimato EUR   : " RST);
+        if (!e_numero_valido(buf))
+          printf(BRED "  [!] " RST "Costo non valido: "
+                 "inserire un numero >= 0 (es. 49.90).\n");
+      } while (!e_numero_valido(buf));
       costo = parse_double(buf);
 
       ris = inserisci_richiesta(r, nr, max_r, codice, cliente, dispositivo,
@@ -476,37 +644,54 @@ static void menu_richieste(Richiesta **r, int *nr, int max_r) {
         printf("\n" BGRN "  [OK] " RST "Richiesta '%s' inserita.\n", codice);
       else
         printf("\n" BRED "  [ERRORE] " RST
-               "Inserimento fallito: codice duplicato o dati non validi.\n");
+               "Inserimento fallito: codice duplicato.\n");
       pausa();
       break;
 
     case 3:
       printf("\n");
-      leggi_stringa(codice, MAX_CODICE, BCYN "  Codice richiesta: " RST);
+      do {
+        leggi_stringa(codice, MAX_CODICE, BCYN "  Codice richiesta: " RST);
+        if (!valida_codice(codice))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice));
       printf(BCYN "  Nuovo stato:\n"
                   "    " BYEL "0" BCYN "=Aperta   " BYEL "1" BCYN
                   "=Assegnata  " BYEL "2" BCYN "=In Corso\n"
                   "    " BYEL "3" BCYN "=Sospesa  " BYEL "4" BCYN
                   "=Chiusa     " BYEL "5" BCYN "=Annullata\n" RST);
-      leggi_stringa(buf, BUF, BCYN "  Scelta: " RST);
+      do {
+        leggi_stringa(buf, BUF, BCYN "  Scelta: " RST);
+        if (!valida_intero_range(buf, 0, 5))
+          printf(BRED "  [!] " RST "Valore non valido: "
+                 "inserire un numero da 0 a 5.\n");
+      } while (!valida_intero_range(buf, 0, 5));
       stato_i = parse_int(buf);
-      if (stato_i < 0 || stato_i > 5) {
-        printf("\n" BRED "  [ERRORE] " RST "Valore non valido (0-5).\n");
-      } else {
-        ris = modifica_stato_richiesta(r, *nr, codice, (StatoRichiesta)stato_i);
-        if (ris == 0)
-          printf("\n" BGRN "  [OK] " RST "Stato aggiornato.\n");
-        else
-          printf("\n" BRED "  [ERRORE] " RST
-                 "Nessuna richiesta con quel codice.\n");
-      }
+      ris = modifica_stato_richiesta(r, *nr, codice, (StatoRichiesta)stato_i);
+      if (ris == 0)
+        printf("\n" BGRN "  [OK] " RST "Stato aggiornato.\n");
+      else
+        printf("\n" BRED "  [ERRORE] " RST
+               "Nessuna richiesta con quel codice.\n");
       pausa();
       break;
 
     case 4:
       printf("\n");
-      leggi_stringa(codice, MAX_CODICE, BCYN "  Codice richiesta : " RST);
-      leggi_stringa(problema, MAX_PROBLEMA, BCYN "  Nuova descrizione: " RST);
+      do {
+        leggi_stringa(codice, MAX_CODICE, BCYN "  Codice richiesta : " RST);
+        if (!valida_codice(codice))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice));
+      do {
+        leggi_stringa(problema, MAX_PROBLEMA,
+                      BCYN "  Nuova descrizione: " RST);
+        if (!valida_testo(problema, 5))
+          printf(BRED "  [!] " RST "Descrizione non valida: "
+                 "inserire almeno 5 caratteri (non solo numeri).\n");
+      } while (!valida_testo(problema, 5));
       ris = modifica_problema_richiesta(r, *nr, codice, problema);
       if (ris == 0)
         printf("\n" BGRN "  [OK] " RST "Descrizione aggiornata.\n");
@@ -518,56 +703,79 @@ static void menu_richieste(Richiesta **r, int *nr, int max_r) {
 
     case 5:
       printf("\n");
-      leggi_stringa(codice, MAX_CODICE, BCYN "  Codice richiesta     : " RST);
-      leggi_stringa(buf, BUF, BCYN "  Nuovo costo stimato  : " RST);
+      do {
+        leggi_stringa(codice, MAX_CODICE,
+                      BCYN "  Codice richiesta     : " RST);
+        if (!valida_codice(codice))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice));
+      do {
+        leggi_stringa(buf, BUF, BCYN "  Nuovo costo stimato  : " RST);
+        if (!e_numero_valido(buf))
+          printf(BRED "  [!] " RST "Costo non valido: "
+                 "inserire un numero >= 0 (es. 49.90).\n");
+      } while (!e_numero_valido(buf));
       costo = parse_double(buf);
       ris = modifica_costo_stimato_richiesta(r, *nr, codice, costo);
       if (ris == 0)
         printf("\n" BGRN "  [OK] " RST "Costo stimato aggiornato.\n");
       else
         printf("\n" BRED "  [ERRORE] " RST
-               "Richiesta non trovata o valore non valido.\n");
+               "Richiesta non trovata.\n");
       pausa();
       break;
 
     case 6:
       printf("\n");
-      leggi_stringa(codice, MAX_CODICE, BCYN "  Codice richiesta    : " RST);
-      leggi_stringa(buf, BUF, BCYN "  Nuovo costo finale  : " RST);
+      do {
+        leggi_stringa(codice, MAX_CODICE,
+                      BCYN "  Codice richiesta    : " RST);
+        if (!valida_codice(codice))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice));
+      do {
+        leggi_stringa(buf, BUF, BCYN "  Nuovo costo finale  : " RST);
+        if (!e_numero_valido(buf))
+          printf(BRED "  [!] " RST "Costo non valido: "
+                 "inserire un numero >= 0 (es. 49.90).\n");
+      } while (!e_numero_valido(buf));
       costo = parse_double(buf);
       ris = modifica_costo_finale_richiesta(r, *nr, codice, costo);
       if (ris == 0)
         printf("\n" BGRN "  [OK] " RST "Costo finale aggiornato.\n");
       else
         printf("\n" BRED "  [ERRORE] " RST
-               "Richiesta non trovata o valore non valido.\n");
+               "Richiesta non trovata.\n");
       pausa();
       break;
 
     case 7:
       printf("\n");
-      leggi_stringa(codice, MAX_CODICE,
-                    BRED "  Codice richiesta da cancellare: " RST);
-      if (codice[0] == '\0') {
-        printf("\n" BRED "  [ERRORE] " RST "Codice non valido.\n");
+      do {
+        leggi_stringa(codice, MAX_CODICE,
+                      BRED "  Codice richiesta da cancellare: " RST);
+        if (!valida_codice(codice))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice));
+      printf(BYEL "  Conferma cancellazione di '%s'? "
+                  "(1=Si, 0=No): " RST,
+             codice);
+      leggi_stringa(buf, BUF, "");
+      if (buf[0] == '1') {
+        ris = cancella_richiesta(r, nr, codice);
+        if (ris == 0)
+          printf("\n" BGRN "  [OK] " RST
+                 "Richiesta '%s' cancellata e memoria liberata.\n",
+                 codice);
+        else
+          printf("\n" BRED "  [ERRORE] " RST
+                 "Nessuna richiesta con codice '%s'.\n",
+                 codice);
       } else {
-        printf(BYEL "  Conferma cancellazione di '%s'? "
-                    "(1=Si, 0=No): " RST,
-               codice);
-        leggi_stringa(buf, BUF, "");
-        if (buf[0] == '1') {
-          ris = cancella_richiesta(r, nr, codice);
-          if (ris == 0)
-            printf("\n" BGRN "  [OK] " RST
-                   "Richiesta '%s' cancellata e memoria liberata.\n",
-                   codice);
-          else
-            printf("\n" BRED "  [ERRORE] " RST
-                   "Nessuna richiesta con codice '%s'.\n",
-                   codice);
-        } else {
-          printf("\n" DIM "  Cancellazione annullata.\n" RST);
-        }
+        printf("\n" DIM "  Cancellazione annullata.\n" RST);
       }
       pausa();
       break;
@@ -630,31 +838,63 @@ static void menu_tecnici(Richiesta **r, int nr, Tecnico **t, int *nt,
         break;
       }
       printf("\n");
-      leggi_stringa(codice_t, MAX_CODICE_TECNICO,
-                    BGRN "  Codice tecnico       : " RST);
-      leggi_stringa(nome, MAX_NOME_TECNICO,
-                    BGRN "  Nome e cognome       : " RST);
-      leggi_stringa(spec, MAX_SPECIALIZZAZIONE,
-                    BGRN "  Specializzazione     : " RST);
-      leggi_stringa(buf, BUF, BGRN "  Max richieste (1-128): " RST);
+      /* Codice tecnico */
+      do {
+        leggi_stringa(codice_t, MAX_CODICE_TECNICO,
+                      BGRN "  Codice tecnico       : " RST);
+        if (!valida_codice(codice_t))
+          printf(BRED "  [!] " RST "Codice non valido: usa solo lettere, "
+                 "numeri, trattini. No spazi.\n");
+      } while (!valida_codice(codice_t));
+      /* Nome e cognome */
+      do {
+        leggi_stringa(nome, MAX_NOME_TECNICO,
+                      BGRN "  Nome e cognome       : " RST);
+        if (!valida_nome(nome))
+          printf(BRED "  [!] " RST "Nome non valido: usa solo lettere, "
+                 "spazi e apostrofi. Min 2 caratteri. No numeri.\n");
+      } while (!valida_nome(nome));
+      /* Specializzazione */
+      do {
+        leggi_stringa(spec, MAX_SPECIALIZZAZIONE,
+                      BGRN "  Specializzazione     : " RST);
+        if (!valida_specializzazione(spec))
+          printf(BRED "  [!] " RST "Specializzazione non valida: usa solo "
+                 "lettere, spazi e trattini. Min 2 caratteri.\n");
+      } while (!valida_specializzazione(spec));
+      /* Max richieste */
+      do {
+        leggi_stringa(buf, BUF, BGRN "  Max richieste (1-128): " RST);
+        if (!valida_intero_range(buf, 1, MAX_RICHIESTE_ASSOLUTO))
+          printf(BRED "  [!] " RST "Valore non valido: "
+                 "inserire un numero da 1 a 128.\n");
+      } while (!valida_intero_range(buf, 1, MAX_RICHIESTE_ASSOLUTO));
       max_ric = parse_int(buf);
-      if (max_ric < 1 || max_ric > MAX_RICHIESTE_ASSOLUTO)
-        max_ric = 5;
 
       ris = inserisci_tecnico(t, nt, max_t, codice_t, nome, spec, max_ric);
       if (ris == 0)
         printf("\n" BGRN "  [OK] " RST "Tecnico '%s' inserito.\n", codice_t);
       else
         printf("\n" BRED "  [ERRORE] " RST
-               "Inserimento fallito: codice duplicato o dati non validi.\n");
+               "Inserimento fallito: codice duplicato.\n");
       pausa();
       break;
 
     case 3:
       printf("\n");
-      leggi_stringa(codice_t, MAX_CODICE_TECNICO,
-                    BGRN "  Codice tecnico  : " RST);
-      leggi_stringa(codice_r, MAX_CODICE, BGRN "  Codice richiesta: " RST);
+      do {
+        leggi_stringa(codice_t, MAX_CODICE_TECNICO,
+                      BGRN "  Codice tecnico  : " RST);
+        if (!valida_codice(codice_t))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice_t));
+      do {
+        leggi_stringa(codice_r, MAX_CODICE, BGRN "  Codice richiesta: " RST);
+        if (!valida_codice(codice_r))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice_r));
       tec = cerca_tecnico(t, *nt, codice_t);
       if (tec == NULL) {
         printf("\n" BRED "  [ERRORE] " RST "Tecnico non trovato.\n");
@@ -678,9 +918,19 @@ static void menu_tecnici(Richiesta **r, int nr, Tecnico **t, int *nt,
 
     case 4:
       printf("\n");
-      leggi_stringa(codice_t, MAX_CODICE_TECNICO,
-                    BGRN "  Codice tecnico  : " RST);
-      leggi_stringa(codice_r, MAX_CODICE, BGRN "  Codice richiesta: " RST);
+      do {
+        leggi_stringa(codice_t, MAX_CODICE_TECNICO,
+                      BGRN "  Codice tecnico  : " RST);
+        if (!valida_codice(codice_t))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice_t));
+      do {
+        leggi_stringa(codice_r, MAX_CODICE, BGRN "  Codice richiesta: " RST);
+        if (!valida_codice(codice_r))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice_r));
       tec = cerca_tecnico(t, *nt, codice_t);
       if (tec == NULL) {
         printf("\n" BRED "  [ERRORE] " RST "Tecnico non trovato.\n");
@@ -733,7 +983,12 @@ static void menu_ricerca(Richiesta **r, int nr, Tecnico **t, int nt) {
 
     case 1:
       printf("\n");
-      leggi_stringa(codice, MAX_CODICE, BCYN "  Codice richiesta: " RST);
+      do {
+        leggi_stringa(codice, MAX_CODICE, BCYN "  Codice richiesta: " RST);
+        if (!valida_codice(codice))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice));
       req = cerca_richiesta(r, nr, codice);
       if (req == NULL)
         printf("\n" BYEL "  [--] " RST "Nessuna richiesta con codice '%s'.\n",
@@ -748,7 +1003,13 @@ static void menu_ricerca(Richiesta **r, int nr, Tecnico **t, int nt) {
 
     case 2:
       printf("\n");
-      leggi_stringa(codice, MAX_CODICE_TECNICO, BCYN "  Codice tecnico: " RST);
+      do {
+        leggi_stringa(codice, MAX_CODICE_TECNICO,
+                      BCYN "  Codice tecnico: " RST);
+        if (!valida_codice(codice))
+          printf(BRED "  [!] " RST "Codice non valido: "
+                 "usa solo lettere, numeri, trattini.\n");
+      } while (!valida_codice(codice));
       tec = cerca_tecnico(t, nt, codice);
       if (tec == NULL)
         printf("\n" BYEL "  [--] " RST "Nessun tecnico con codice '%s'.\n",
